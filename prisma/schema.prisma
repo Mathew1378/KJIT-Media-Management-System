@@ -1,0 +1,129 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  name         String
+  role         String        // ADMIN, FACULTY, MEDIA_HEAD, MEDIA_MEMBER, DEAN, HOD, COORDINATOR
+  department   String        @default("School of Computer Science & Technology")
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  eventsCreated Event[]      @relation("EventCreator")
+  assignments   Assignment[]
+  mediaUploaded MediaAsset[]
+  reviews       ApprovalStep[]
+  reports       Report[]
+  auditLogs     AuditLog[]
+}
+
+model RolePermission {
+  id             String @id @default(uuid())
+  role           String
+  permissionCode String
+
+  @@unique([role, permissionCode])
+}
+
+model Event {
+  id                  String        @id @default(uuid())
+  name                String
+  category            String        // Academic, Cultural, Workshop, Guest Lecture, Sports, Extension, Executive, Conference
+  dateTime            DateTime
+  venue               String
+  expectedAudience    String
+  dignitariesJson     String        // JSON array of {name, designation, organisation}
+  chiefGuest          String?
+  guestCount          Int           @default(0)
+  specialInstructions String?
+  mediaDeadline       DateTime
+  status              String        @default("REGISTERED") 
+  // Statuses: REGISTERED, ASSIGNED, MEDIA_UPLOADED, REEL_SUBMITTED, DEAN_APPROVED, HOD_APPROVED, PUBLISHED, REJECTED
+
+  driveFolderUrl      String?
+  driveFolderId       String?
+  driveFolderAddedBy  String?
+  driveFolderAddedAt  DateTime?
+
+  createdById         String
+  createdBy           User          @relation("EventCreator", fields: [createdById], references: [id])
+  
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  assignments         Assignment[]
+  mediaAssets         MediaAsset[]
+  approvalSteps       ApprovalStep[]
+  reports             Report[]
+}
+
+model Assignment {
+  id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  roleInEvent String   // PHOTOGRAPHER, VIDEOGRAPHER, EDITOR
+  assignedAt  DateTime @default(now())
+}
+
+model MediaAsset {
+  id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  fileName    String
+  fileType    String   // RAW, GEOTAGGED, FINAL_REEL
+  fileId      String   // Google Drive File ID or Local Storage key
+  drivePath   String   // e.g. KJIT/EventName_2026-08-15/GeoTagged/file.jpg
+  uploaderId  String
+  uploader    User     @relation(fields: [uploaderId], references: [id])
+  caption     String?
+  geotagData  String?  // JSON string e.g. {lat, lng, locationName, timestamp}
+  createdAt   DateTime @default(now())
+}
+
+model ApprovalStep {
+  id          String    @id @default(uuid())
+  eventId     String
+  event       Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  stage       String    // DEAN, HOD, COORDINATOR
+  status      String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewerId  String?
+  reviewer    User?     @relation(fields: [reviewerId], references: [id])
+  comments    String?
+  reviewedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+model Report {
+  id             String   @id @default(uuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  formatType     String   // Format1_Standard, Format2_Workshop, Format3_Conference, Format4_Cultural, Format5_GuestLecture, Format6_Sports, Format7_Extension, Format8_Executive
+  reportDataJson String   // Dynamic JSON storing form values & dynamic participant rows
+  generatedById  String
+  generatedBy    User     @relation(fields: [generatedById], references: [id])
+  pdfUrl         String?
+  createdAt      DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String?
+  role      String?
+  action    String   // e.g. USER_CREATED, EVENT_REGISTERED, MEDIA_UPLOADED, REEL_APPROVED, REEL_REJECTED
+  details   String
+  ipAddress String?  @default("127.0.0.1")
+  createdAt DateTime @default(now())
+}
