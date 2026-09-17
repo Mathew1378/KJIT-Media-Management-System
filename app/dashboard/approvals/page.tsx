@@ -121,7 +121,7 @@ export default function ApprovalsPage() {
             Department Approval Workspace
           </h1>
           <p className="text-xs text-slate-500 mt-1">
-            Sequential 3-Stage Approval Chain: Dean Review &rarr; HOD Review &rarr; Program Coordinator Final Approval.
+            Equal & Independent Approval Workflow: Program Coordinator, HOD, and Dean possess independent authorization authority.
           </p>
         </div>
 

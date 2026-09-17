@@ -68,13 +68,13 @@ export async function POST(req: Request) {
 
     // Workflow state transitions
     if (fileType === 'FINAL_REEL') {
-      // Mark event as REEL_SUBMITTED and reset approval chain to Dean PENDING
+      // Mark event as REEL_SUBMITTED and reset approval chain to PENDING
       await prisma.event.update({
         where: { id: event.id },
         data: { status: 'REEL_SUBMITTED' },
       });
 
-      // Reset approval steps to PENDING for Dean stage
+      // Reset approval steps to PENDING for all approval stages
       await prisma.approvalStep.updateMany({
         where: { eventId: event.id },
         data: { status: 'PENDING', reviewerId: null, comments: null, reviewedAt: null },
@@ -85,7 +85,7 @@ export async function POST(req: Request) {
         userName: user.name,
         role: user.role,
         action: 'REEL_SUBMITTED',
-        details: `Submitted Final Reel version (${file.name}) for ${event.name}. Initiated approval chain at Dean stage.`,
+        details: `Submitted Final Reel version (${file.name}) for ${event.name}. Initiated 3-stage approval chain (Program Coordinator -> HOD -> Dean).`,
       });
     } else {
       if (event.status === 'ASSIGNED' || event.status === 'REGISTERED') {

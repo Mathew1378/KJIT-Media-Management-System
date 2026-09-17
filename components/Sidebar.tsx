@@ -14,10 +14,9 @@ import {
   ShieldAlert,
   UserPlus,
   BookOpen,
-  Sparkles,
   HardDrive,
+  Share2,
 } from 'lucide-react';
-import KjitLogo from './KjitLogo';
 
 interface SidebarProps {
   userRole?: string;
@@ -54,7 +53,7 @@ export default function Sidebar({ userRole = 'FACULTY', permissions = [] }: Side
       label: 'Active User Directory',
       href: '/dashboard/directory',
       icon: BookOpen,
-      show: isPermitted('directory:view') && userRole !== 'FACULTY',
+      show: isPermitted('directory:view') && userRole === 'ADMIN',
     },
     {
       label: 'Register Event',
@@ -81,6 +80,12 @@ export default function Sidebar({ userRole = 'FACULTY', permissions = [] }: Side
       show: isPermitted('approvals:view'),
     },
     {
+      label: 'Social Media Desk',
+      href: '/dashboard/social-media',
+      icon: Share2,
+      show: isPermitted('social:manage'),
+    },
+    {
       label: 'Academic Reports',
       href: '/dashboard/reports',
       icon: FileSpreadsheet,
@@ -95,32 +100,30 @@ export default function Sidebar({ userRole = 'FACULTY', permissions = [] }: Side
   ];
 
   return (
-    <aside className="w-72 bg-white border-r border-slate-200/80 min-h-[calc(100vh-5rem)] p-5 flex flex-col justify-between shadow-sm shrink-0">
-      <div className="space-y-6">
-        {/* Institutional Sidebar Header Card */}
-        <div className="bg-gradient-to-br from-[#0F2C59] to-[#162E4D] rounded-2xl p-4 text-white shadow-md border border-blue-900/40 relative overflow-hidden">
-          <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-400/10 rounded-full blur-xl pointer-events-none" />
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300">
+    <aside className="w-64 bg-white border-r border-slate-200 min-h-[calc(100vh-3.75rem)] p-4 flex flex-col justify-between shadow-sm shrink-0">
+      <div className="space-y-5">
+        {/* Active Workspace Info Card */}
+        <div className="bg-slate-50 rounded-xl p-3.5 border border-slate-200 text-slate-800 space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
               Active Workspace
             </span>
           </div>
-          <div className="font-serif font-bold text-sm leading-tight text-white">
-            KJIT Media Portal
+          <div className="font-bold text-xs text-[#0F2C59]">
+            Kristu Jayanti Institute of Technology Media Management
           </div>
-          <div className="text-[10.5px] text-slate-300 font-sans mt-0.5">
-            Role: <span className="font-extrabold text-amber-300">{userRole.replace('_', ' ')}</span>
+          <div className="text-[10.5px] text-slate-500 font-medium">
+            Role: <span className="font-bold text-[#0F2C59]">{userRole.replace('_', ' ')}</span>
           </div>
         </div>
 
         {/* Navigation Section */}
         <div>
-          <p className="px-3 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-1.5">
-            <Sparkles className="w-3 h-3 text-kjit-gold" />
-            Institutional Navigation
+          <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+            ERP Navigation
           </p>
-          <nav className="space-y-1.5">
+          <nav className="space-y-1">
             {navItems
               .filter((item) => item.show)
               .map((item) => {
@@ -130,19 +133,15 @@ export default function Sidebar({ userRole = 'FACULTY', permissions = [] }: Side
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-[#0F2C59] text-white shadow-lg shadow-blue-950/20 border border-blue-900/60'
-                        : 'text-slate-600 hover:bg-slate-100/80 hover:text-[#0F2C59]'
-                    }`}
+                    className={`flex items-center justify-between px-3 py-2.5 rounded-lg text-xs transition-all ${isActive
+                        ? 'bg-blue-50 text-[#0F2C59] font-bold border-l-4 border-[#0F2C59] shadow-none'
+                        : 'text-slate-600 font-medium hover:bg-slate-50 hover:text-[#0F2C59]'
+                      }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-kjit-gold' : 'text-slate-400'}`} />
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-[#0F2C59]' : 'text-slate-400'}`} />
                       <span>{item.label}</span>
                     </div>
-                    {isActive && (
-                      <span className="w-1.5 h-4 rounded-full bg-[#D4AF37]" />
-                    )}
                   </Link>
                 );
               })}
@@ -150,24 +149,23 @@ export default function Sidebar({ userRole = 'FACULTY', permissions = [] }: Side
         </div>
       </div>
 
-      {/* Google Drive Repository Status Footer */}
-      <div className="pt-4 border-t border-slate-200/80">
-        <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 text-[11px] text-slate-600 space-y-1.5">
+      {/* Google Drive Status Footer */}
+      <div className="pt-3 border-t border-slate-200">
+        <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[10.5px] text-slate-600 space-y-1">
           <div className="flex items-center justify-between font-bold text-slate-900">
-            <span className="flex items-center gap-1.5 text-[10.5px]">
-              <HardDrive className="w-3.5 h-3.5 text-blue-600" />
+            <span className="flex items-center gap-1.5 text-[10px]">
+              <HardDrive className="w-3.5 h-3.5 text-[#0F2C59]" />
               Drive Storage Engine
             </span>
-            <span className="text-[9.5px] bg-emerald-100 text-emerald-800 font-extrabold px-2 py-0.5 rounded-full border border-emerald-300">
+            <span className="text-[9px] bg-emerald-50 text-emerald-800 font-bold px-1.5 py-0.5 rounded border border-emerald-200">
               Active v3
             </span>
           </div>
-          <p className="text-[10px] text-slate-500 leading-tight">
-            Directly synced to official KJIT Google Drive cloud folder.
+          <p className="text-[9.5px] text-slate-500 leading-tight">
+            Synced to official Kristu Jayanti Institute of Technology Google Drive cloud folder.
           </p>
         </div>
       </div>
     </aside>
   );
 }
-

@@ -20,10 +20,10 @@ async function main() {
     ADMIN: ['dashboard:view', 'users:manage', 'audit:view', 'directory:view', 'events:directory', 'calendar:view'],
     FACULTY: ['dashboard:view', 'events:create', 'reports:generate', 'events:directory', 'calendar:view'],
     MEDIA_HEAD: ['dashboard:view', 'assignments:manage', 'media:upload', 'directory:view', 'events:directory', 'calendar:view'],
-    MEDIA_MEMBER: ['dashboard:view', 'media:upload', 'directory:view', 'events:directory', 'calendar:view'],
-    DEAN: ['dashboard:view', 'approvals:view', 'directory:view', 'events:directory', 'calendar:view'],
-    HOD: ['dashboard:view', 'approvals:view', 'directory:view', 'events:directory', 'calendar:view'],
-    COORDINATOR: ['dashboard:view', 'approvals:view', 'directory:view', 'events:directory', 'calendar:view'],
+    MEDIA_MEMBER: ['dashboard:view', 'media:upload', 'events:directory', 'calendar:view'],
+    DEAN: ['dashboard:view', 'approvals:view', 'events:directory', 'calendar:view'],
+    HOD: ['dashboard:view', 'approvals:view', 'events:directory', 'calendar:view'],
+    COORDINATOR: ['dashboard:view', 'approvals:view', 'events:directory', 'calendar:view'],
   };
 
   for (const [role, perms] of Object.entries(rolePermissions)) {
@@ -34,41 +34,45 @@ async function main() {
     }
   }
 
-  // 3. Delete non-admin demo users
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        not: 'admin@kristujayanti.edu.in',
-      },
-    },
-  });
-
-  // 4. Create Master System Admin User for User Provisioning
+  // 3. Create Default System Users
   const defaultPasswordHash = bcrypt.hashSync('password123', 10);
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@kristujayanti.edu.in' },
-    update: {
-      name: 'System Administrator',
-      role: 'ADMIN',
-      department: 'Office of Information Technology',
-    },
-    create: {
-      email: 'admin@kristujayanti.edu.in',
-      name: 'System Administrator',
-      role: 'ADMIN',
-      department: 'Office of Information Technology',
-      passwordHash: defaultPasswordHash,
-    },
-  });
 
-  // 5. Initial System Initialization Audit Log
+  const defaultUsers = [
+    { email: 'admin@kristujayanti.edu.in', name: 'System Administrator', role: 'ADMIN', department: 'Office of Information Technology' },
+    { email: 'ezra@kristujayanti.com', name: 'Ezra Pandith', role: 'MEDIA_HEAD', department: 'Department of Media & Communication' },
+    { email: 'ashley@kju.com', name: 'Ashley Thomas', role: 'MEDIA_MEMBER', department: 'Department of Media & Communication' },
+    { email: 'nidhin@kju.com', name: 'Nidhin Kumar', role: 'MEDIA_MEMBER', department: 'Department of Media & Communication' },
+    { email: 'charles@kju.com', name: 'Charles B', role: 'MEDIA_MEMBER', department: 'Department of Media & Communication' },
+    { email: 'libin@kristujayanti.com', name: 'Dr. Libin', role: 'FACULTY', department: 'School of Computer Science & Technology' },
+    { email: 'kumar@kristujayanti.com', name: 'Dr. R Kumar', role: 'DEAN', department: 'School of Computer Science & Technology' },
+    { email: 'muruganantham@kristujayanti.com', name: 'Dr. Muruganantham', role: 'HOD', department: 'School of Computer Science & Technology' },
+    { email: 'velmurugan@kristujayanti.com', name: 'Dr. Velmurugan R', role: 'COORDINATOR', department: 'School of Computer Science & Technology' },
+  ];
+
+  for (const u of defaultUsers) {
+    await prisma.user.upsert({
+      where: { email: u.email },
+      update: { name: u.name, role: u.role, department: u.department },
+      create: {
+        email: u.email,
+        name: u.name,
+        role: u.role,
+        department: u.department,
+        passwordHash: defaultPasswordHash,
+      },
+    });
+  }
+
+  const adminUser = await prisma.user.findUnique({ where: { email: 'admin@kristujayanti.edu.in' } });
+
+  // 4. Initial System Initialization Audit Log
   await prisma.auditLog.create({
     data: {
       userId: adminUser.id,
       userName: adminUser.name,
       role: 'ADMIN',
       action: 'SYSTEM_INITIALIZATION',
-      details: 'KJIT Media Management System initialized in Clean Slate Mode for production deployment.',
+      details: 'KJIT Media Management System initialized with permissions and default accounts.',
     },
   });
 

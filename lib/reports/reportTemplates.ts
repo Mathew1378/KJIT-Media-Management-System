@@ -208,7 +208,7 @@ export const REPORT_FORMATS: ReportFormatConfig[] = [
       { id: 'eventName', label: 'Outreach Program Title', type: 'text', required: true, autoFillKey: 'name' },
       { id: 'dateTime', label: 'Date', type: 'text', required: true, autoFillKey: 'dateTime' },
       { id: 'venue', label: 'Village / Location / School', type: 'text', required: true, autoFillKey: 'venue' },
-      { id: 'collaboratingAgency', label: 'Collaborating NGO / UBA Cell', type: 'text', required: true, placeholder: 'e.g. UBA Unit KJIT, Local Village Panchayat' },
+      { id: 'collaboratingAgency', label: 'Collaborating NGO / UBA Cell', type: 'text', required: true, placeholder: 'e.g. UBA Unit Kristu Jayanti Institute of Technology, Local Village Panchayat' },
       { id: 'beneficiaryCount', label: 'Number of Community Beneficiaries', type: 'number', required: true, placeholder: 'e.g. 150 Village Residents' },
       { id: 'objective', label: 'Social & Community Objective', type: 'textarea', required: true },
       { id: 'writeup', label: 'Activities Executed on Field', type: 'textarea', required: true },

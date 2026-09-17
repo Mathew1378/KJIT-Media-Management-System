@@ -26,15 +26,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col selection:bg-amber-400 selection:text-slate-950">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col selection:bg-[#0F2C59] selection:text-white">
       <Navbar user={user} />
       <div className="flex flex-1">
         <Sidebar userRole={user.role} permissions={permissions} />
-        <main className="flex-1 p-6 sm:p-8 lg:p-10 max-w-[1536px] mx-auto w-full space-y-8">
+        <main className="flex-1 p-5 sm:p-6 lg:p-8 max-w-[1536px] mx-auto w-full space-y-6">
           {children}
         </main>
       </div>
     </div>
   );
 }
-

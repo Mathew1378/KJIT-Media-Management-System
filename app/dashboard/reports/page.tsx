@@ -25,6 +25,7 @@ import * as XLSX from 'xlsx';
 import mammoth from 'mammoth';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import KjitLogo from '@/components/KjitLogo';
 
 interface EventData {
   id: string;
@@ -36,6 +37,11 @@ interface EventData {
   chiefGuest: string;
   createdBy: { name: string; email: string };
   mediaAssets: { id: string; fileName: string; fileId: string; fileType: string; caption: string }[];
+  socialMediaPublication?: {
+    instagramUrl?: string;
+    facebookUrl?: string;
+    status?: string;
+  } | null;
 }
 
 export default function ReportGeneratorPage() {
@@ -55,11 +61,51 @@ export default function ReportGeneratorPage() {
   // Selected Photos state: array of { fileId, fileName, caption }
   const [selectedPhotos, setSelectedPhotos] = useState<{ fileId: string; fileName: string; caption: string }[]>([]);
 
+  // Signature Upload states (Data URLs)
+  const [hodSignatureUrl, setHodSignatureUrl] = useState<string>('');
+  const [deanSignatureUrl, setDeanSignatureUrl] = useState<string>('');
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [exportingWord, setExportingWord] = useState(false);
   const [msg, setMsg] = useState('');
+
+  const handleHodSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      alert('Please select a valid image file (PNG, JPG, JPEG).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      if (evt.target?.result) setHodSignatureUrl(evt.target.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleDeanSignatureUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      alert('Please select a valid image file (PNG, JPG, JPEG).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      if (evt.target?.result) setDeanSignatureUrl(evt.target.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Import Participant List Modal State
   const [importModalOpen, setImportModalOpen] = useState(false);
@@ -120,6 +166,17 @@ export default function ReportGeneratorPage() {
         initialValues[field.id] = '';
       }
     });
+
+    // Auto-populate social media links if publication exists
+    if (activeEvent.socialMediaPublication) {
+      const pub = activeEvent.socialMediaPublication;
+      const links = [];
+      if (pub.instagramUrl) links.push(`Instagram Published Reel: ${pub.instagramUrl}`);
+      if (pub.facebookUrl) links.push(`Facebook Published Reel: ${pub.facebookUrl}`);
+      if (links.length > 0) {
+        initialValues['socialMediaLink'] = links.join('\n');
+      }
+    }
 
     setFormValues(initialValues);
     setTableValues(initialTables);
@@ -236,6 +293,10 @@ export default function ReportGeneratorPage() {
             formValues,
             tableValues,
             photos: selectedPhotos,
+            signatures: {
+              hodSignatureUrl,
+              deanSignatureUrl,
+            },
           },
         }),
       });
@@ -301,7 +362,11 @@ export default function ReportGeneratorPage() {
     setExportingWord(true);
 
     try {
-      const contentHtml = reportPrintRef.current.innerHTML;
+      let contentHtml = reportPrintRef.current.innerHTML;
+      if (typeof window !== 'undefined') {
+        const origin = window.location.origin;
+        contentHtml = contentHtml.replace(/src="\/([^"]+)"/g, `src="${origin}/$1"`);
+      }
 
       const fullDocumentHtml = `
         <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -794,6 +859,91 @@ export default function ReportGeneratorPage() {
 
             return null;
           })}
+
+          {/* SIGNATURE UPLOADS SECTION */}
+          <div className="space-y-4 pt-6 border-t-2 border-slate-200">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-900">Institutional Signature Uploads</h3>
+                <p className="text-xs text-slate-500">Upload HOD and Dean signature images for inclusion in final official reports.</p>
+              </div>
+              <span className="text-[10px] font-bold uppercase bg-[#0F2C59] text-amber-300 px-3 py-1 rounded-full">
+                Final Signatures
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* HOD Signature Upload */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-black text-slate-800">HOD Signature</label>
+                  <span className="text-[11px] text-slate-500 block">Upload HOD signature image (PNG, JPG, JPEG)</span>
+                </div>
+                {hodSignatureUrl ? (
+                  <div className="space-y-2">
+                    <div className="h-20 bg-white border border-slate-300 rounded-xl p-2 flex items-center justify-center overflow-hidden">
+                      <img src={hodSignatureUrl} alt="HOD Signature Preview" className="max-h-full object-contain" />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-xs font-bold text-[#0F2C59] hover:underline cursor-pointer">
+                        Replace HOD Signature
+                        <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleHodSignatureUpload} className="hidden" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setHodSignatureUrl('')}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-slate-300 hover:border-[#0F2C59] bg-white rounded-xl p-4 text-center cursor-pointer block transition-colors">
+                    <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+                    <span className="text-xs font-bold text-slate-700 block">Select HOD Signature File</span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG or JPEG (Max 5MB)</span>
+                    <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleHodSignatureUpload} className="hidden" />
+                  </label>
+                )}
+              </div>
+
+              {/* Dean Signature Upload */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
+                <div>
+                  <label className="block text-xs font-black text-slate-800">Dean Signature</label>
+                  <span className="text-[11px] text-slate-500 block">Upload Dean signature image (PNG, JPG, JPEG)</span>
+                </div>
+                {deanSignatureUrl ? (
+                  <div className="space-y-2">
+                    <div className="h-20 bg-white border border-slate-300 rounded-xl p-2 flex items-center justify-center overflow-hidden">
+                      <img src={deanSignatureUrl} alt="Dean Signature Preview" className="max-h-full object-contain" />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <label className="text-xs font-bold text-[#0F2C59] hover:underline cursor-pointer">
+                        Replace Dean Signature
+                        <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleDeanSignatureUpload} className="hidden" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setDeanSignatureUrl('')}
+                        className="text-xs font-bold text-red-600 hover:underline"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className="border-2 border-dashed border-slate-300 hover:border-[#0F2C59] bg-white rounded-xl p-4 text-center cursor-pointer block transition-colors">
+                    <Upload className="w-5 h-5 text-slate-400 mx-auto mb-1" />
+                    <span className="text-xs font-bold text-slate-700 block">Select Dean Signature File</span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG or JPEG (Max 5MB)</span>
+                    <input type="file" accept="image/png, image/jpeg, image/jpg" onChange={handleDeanSignatureUpload} className="hidden" />
+                  </label>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -847,43 +997,26 @@ export default function ReportGeneratorPage() {
           className="print-area bg-white border border-slate-300 rounded-2xl p-8 sm:p-12 shadow-xl space-y-8 text-slate-900"
         >
           {/* Official Institutional Header */}
-          <div className="text-center border-b-2 border-[#0F2C59] pb-6 space-y-2 relative">
-            <div className="flex items-center justify-center gap-4 mb-2">
-              {/* Official Seal Emblem Vector */}
-              <div className="w-14 h-14 rounded-full bg-[#0F2C59] border-2 border-[#D4AF37] p-1 shrink-0 overflow-hidden flex items-center justify-center">
-                <svg viewBox="0 0 100 100" className="w-full h-full text-white fill-current">
-                  <circle cx="50" cy="50" r="48" fill="none" stroke="currentColor" strokeWidth="2" strokeDasharray="90 2" />
-                  <circle cx="50" cy="50" r="43" fill="none" stroke="currentColor" strokeWidth="1" />
-                  <path d="M50 15 L50 25 M35 20 L40 28 M65 20 L60 28 M25 32 L33 37 M75 32 L67 37" stroke="#D4AF37" strokeWidth="2.5" strokeLinecap="round" />
-                  <polygon points="50,22 72,31 50,38 28,31" fill="#D4AF37" />
-                  <polygon points="45,36 50,38 55,36 55,43 45,43" fill="#D4AF37" />
-                  <path d="M26 48 C 36 44, 46 47, 50 51 C 54 47, 64 44, 74 48 L 74 65 C 64 61, 54 64, 50 67 C 46 64, 36 61, 26 65 Z" fill="#FFFFFF" stroke="#162E4D" strokeWidth="1.5" />
-                  <line x1="50" y1="51" x2="50" y2="67" stroke="#162E4D" strokeWidth="1.5" />
-                  <path d="M 22 74 Q 50 82 78 74 L 75 79 Q 50 87 25 79 Z" fill="#D4AF37" />
-                  <path d="M 20 68 C 22 78, 38 88, 50 88 C 62 88, 78 78, 80 68" fill="none" stroke="#D4AF37" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </div>
-
-              <div className="text-left">
-                <div className="text-2xl font-serif font-black tracking-tight text-[#0F2C59] uppercase leading-none">
-                  Kristu Jayanti University
-                </div>
-                <div className="text-[10px] font-sans font-bold uppercase tracking-widest text-[#B89628] mt-1">
-                  (Deemed to be University) • UGC Autonomous • NAAC A++
-                </div>
-                <div className="text-[9.5px] text-slate-600 font-semibold mt-0.5">
-                  KRISTU JAYANTI INSTITUTE OF TECHNOLOGY • School of Computer Science & Technology
-                </div>
-              </div>
+          <div className="border-b-2 border-[#0F2C59] pb-5 space-y-3 relative">
+            {/* Upper Right: Academic Year */}
+            <div className="flex items-center justify-end text-xs text-slate-600 font-sans font-semibold">
+              <span>Academic Year: <strong className="text-slate-900 font-bold">2026-2027</strong></span>
             </div>
 
-            <div className="text-[10px] text-slate-500 font-sans border-t border-slate-100 pt-2 flex items-center justify-between px-4">
-              <span>K. Narayanapura, Kothanur P.O., Bengaluru - 560077</span>
-              <span>Academic Year: <strong>2026-2027</strong></span>
+            {/* Centered Official University Logo */}
+            <div className="flex justify-center text-center py-1">
+              <img
+                src="/images/kjit-logo.png"
+                alt="Kristu Jayanti (Deemed to be University)"
+                className="h-16 sm:h-20 max-h-24 w-auto max-w-full object-contain mx-auto brightness-0"
+              />
             </div>
 
-            <div className="pt-3 text-base sm:text-lg font-serif font-black text-[#0F2C59] uppercase tracking-wide border-t-2 border-amber-400 max-w-xl mx-auto mt-2">
-              {currentFormat.name}
+            {/* Centered Format Title */}
+            <div className="text-center pt-2">
+              <h2 className="text-base sm:text-lg font-serif font-black text-[#0F2C59] uppercase tracking-wide">
+                {currentFormat.name}
+              </h2>
             </div>
           </div>
 
@@ -980,17 +1113,31 @@ export default function ReportGeneratorPage() {
           </div>
 
           {/* Institutional Signature Block */}
-          <div className="pt-16 border-t-2 border-slate-300 flex items-center justify-between text-xs font-bold text-slate-800">
-            <div className="text-center space-y-1">
-              <div className="w-48 border-b border-slate-400 mb-1"></div>
-              <div className="font-black text-[#0F2C59]">Prepared by</div>
-              <div className="text-[10px] text-slate-500 font-normal">Faculty Event Coordinator</div>
+          <div className="pt-16 border-t-2 border-slate-300 grid grid-cols-2 gap-8 text-xs font-bold text-slate-800">
+            <div className="text-center space-y-2 flex flex-col items-center">
+              <div className="h-16 flex items-end justify-center">
+                {hodSignatureUrl ? (
+                  <img src={hodSignatureUrl} alt="HOD Signature" className="max-h-16 max-w-full object-contain" />
+                ) : (
+                  <div className="text-[10px] text-slate-400 italic font-normal">Signature Pending</div>
+                )}
+              </div>
+              <div className="w-48 border-b border-slate-400"></div>
+              <div className="font-black text-[#0F2C59] uppercase tracking-wider">HOD Signature</div>
+              <div className="text-[10px] text-slate-500 font-semibold">Head of Department (HOD)</div>
             </div>
 
-            <div className="text-center space-y-1">
-              <div className="w-48 border-b border-slate-400 mb-1"></div>
-              <div className="font-black text-[#0F2C59]">Verified & Approved by</div>
-              <div className="text-[10px] text-slate-500 font-normal">Head of Department / Dean</div>
+            <div className="text-center space-y-2 flex flex-col items-center">
+              <div className="h-16 flex items-end justify-center">
+                {deanSignatureUrl ? (
+                  <img src={deanSignatureUrl} alt="Dean Signature" className="max-h-16 max-w-full object-contain" />
+                ) : (
+                  <div className="text-[10px] text-slate-400 italic font-normal">Signature Pending</div>
+                )}
+              </div>
+              <div className="w-48 border-b border-slate-400"></div>
+              <div className="font-black text-[#0F2C59] uppercase tracking-wider">Dean Signature</div>
+              <div className="text-[10px] text-slate-500 font-semibold">Dean of School</div>
             </div>
           </div>
         </div>

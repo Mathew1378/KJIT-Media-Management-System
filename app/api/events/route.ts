@@ -20,6 +20,7 @@ export async function GET() {
         assignments: { include: { user: { select: { id: true, name: true, role: true } } } },
         mediaAssets: true,
         approvalSteps: { include: { reviewer: { select: { name: true, role: true } } } },
+        socialMediaPublication: true,
       },
       orderBy: { dateTime: 'desc' },
     });
@@ -31,6 +32,7 @@ export async function GET() {
         assignments: { include: { user: { select: { id: true, name: true, role: true } } } },
         mediaAssets: true,
         approvalSteps: true,
+        socialMediaPublication: true,
       },
       orderBy: { dateTime: 'desc' },
     });
@@ -82,12 +84,12 @@ export async function POST(req: Request) {
       },
     });
 
-    // Create initial approval steps structure (Dean -> HOD -> Coordinator)
+    // Create initial approval steps structure (Program Coordinator -> HOD -> Dean)
     await prisma.approvalStep.createMany({
       data: [
-        { eventId: event.id, stage: 'DEAN', status: 'PENDING' },
-        { eventId: event.id, stage: 'HOD', status: 'PENDING' },
         { eventId: event.id, stage: 'COORDINATOR', status: 'PENDING' },
+        { eventId: event.id, stage: 'HOD', status: 'PENDING' },
+        { eventId: event.id, stage: 'DEAN', status: 'PENDING' },
       ],
     });
 

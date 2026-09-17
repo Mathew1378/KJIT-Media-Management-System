@@ -9,9 +9,13 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const allowed = await hasPermission(user.role, 'directory:view');
-  if (!allowed || user.role === 'FACULTY') {
-    return NextResponse.json({ error: 'Forbidden. Active User Directory access is restricted.' }, { status: 403 });
+  const allowed =
+    (await hasPermission(user.role, 'directory:view')) ||
+    (await hasPermission(user.role, 'assignments:manage')) ||
+    ['ADMIN', 'MEDIA_HEAD'].includes(user.role);
+
+  if (!allowed) {
+    return NextResponse.json({ error: 'Forbidden. User Directory access is restricted.' }, { status: 403 });
   }
 
   const users = await prisma.user.findMany({

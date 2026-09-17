@@ -253,7 +253,7 @@ export default function RegisterEventPage() {
                   value={venue}
                   onChange={(e) => setVenue(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
-                  placeholder="e.g. Main Auditorium, SKE Block, KJIT Campus"
+                  placeholder="e.g. Main Auditorium, SKE Block, Kristu Jayanti Institute of Technology Campus"
                 />
               </div>
             </div>

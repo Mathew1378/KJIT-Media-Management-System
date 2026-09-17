@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import {
   CalendarDays,
   FileCheck,
@@ -15,12 +14,9 @@ import {
   Sparkles,
   Users,
   Tag,
-  ShieldCheck,
   Building2,
-  Compass,
 } from 'lucide-react';
 import StatCard from '@/components/StatCard';
-import EventCard from '@/components/EventCard';
 import StatusBadge from '@/components/StatusBadge';
 
 interface EventItem {
@@ -56,7 +52,7 @@ export default function DashboardOverview() {
         if (data.events) setEvents(data.events);
         setLoading(false);
       })
-      .catch((err) => setLoading(false));
+      .catch(() => setLoading(false));
   }, []);
 
   const totalEvents = events.length;
@@ -70,53 +66,54 @@ export default function DashboardOverview() {
 
   const isPermitted = (code: string) => permissions.includes(code);
 
-  return (
-    <div className="space-y-10">
-      {/* INSTITUTIONAL WELCOME BANNER */}
-      <div className="bg-gradient-to-r from-[#0F2C59] via-[#162E4D] to-[#0A192F] rounded-3xl p-8 sm:p-10 text-white shadow-2xl relative overflow-hidden border border-blue-900/40">
-        <div className="absolute right-0 top-0 w-[450px] h-[450px] bg-gradient-to-br from-[#D4AF37]/15 to-transparent rounded-full blur-3xl pointer-events-none" />
+  if (user?.role === 'SOCIAL_MEDIA_HANDLER') {
+    const SocialMediaDashboardPage = require('./social-media/page').default;
+    return <SocialMediaDashboardPage />;
+  }
 
-        <div className="relative z-10 space-y-4 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-amber-300 text-xs font-extrabold backdrop-blur-md border border-white/15 shadow-md">
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+  return (
+    <div className="space-y-8">
+      {/* INSTITUTIONAL ERP WELCOME BANNER */}
+      <div className="bg-white rounded-xl p-6 sm:p-7 border border-slate-200 shadow-sm text-slate-900 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="space-y-2 max-w-3xl">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-blue-50 border border-blue-200 text-[#0F2C59] text-[10.5px] font-bold uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-[#0F2C59]" />
             <span>Kristu Jayanti University • Institutional Command Centre</span>
           </div>
 
-          <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white font-serif">
-              Good morning, {user?.name || 'Faculty'}
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
+              Welcome back, {user?.name || 'Faculty'}
             </h1>
-            <p className="text-amber-200/90 text-sm font-semibold tracking-wide">
-              KJIT Media Management System • {user?.department || 'Department Workspace'}
+            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+              Kristu Jayanti Institute of Technology Media Management System • {user?.department || 'School of Computer Science & Technology'}
             </p>
           </div>
-
-          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal pt-1">
-            Welcome to your official digital operations workspace. Manage event registrations, assign field media teams, track Google Drive v3 cloud storage, and process 3-stage departmental approvals.
-          </p>
         </div>
-      </div>
 
-      {/* 4 LARGE INSTITUTIONAL STATISTIC CARDS */}
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-[#0F2C59]" />
-            Departmental Media Operations Metrics
-          </h2>
-          <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">
+        <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+          <span className="text-xs font-semibold text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200">
             Academic Year 2026-2027
           </span>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 4 INSTITUTIONAL STATISTIC CARDS */}
+      <div>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-[#0F2C59]" />
+            Departmental Media Operations Metrics
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="TOTAL EVENTS"
             value={loading ? '...' : totalEvents}
             subtitle={`${Math.max(0, totalEvents - publishedEvents)} active/upcoming events`}
             icon={CalendarDays}
             colorVariant="navy"
-            delay={0}
           />
           <StatCard
             title="PENDING MEDIA"
@@ -124,15 +121,13 @@ export default function DashboardOverview() {
             subtitle={`${inProgress} active media team tasks`}
             icon={UploadCloud}
             colorVariant="amber"
-            delay={0.1}
           />
           <StatCard
             title="APPROVALS"
             value={loading ? '...' : pendingApprovals}
-            subtitle="Awaiting Dean / HOD / Coordinator review"
+            subtitle="Awaiting Dean / HOD / Coordinator"
             icon={Clock}
             colorVariant="gold"
-            delay={0.2}
           />
           <StatCard
             title="COMPLETED"
@@ -140,146 +135,145 @@ export default function DashboardOverview() {
             subtitle="Archived in academic repository"
             icon={CheckCircle2}
             colorVariant="emerald"
-            delay={0.3}
           />
         </div>
       </div>
 
       {/* QUICK WORKSPACE ACTIONS */}
-      <div className="space-y-4">
-        <h3 className="text-sm font-black uppercase tracking-wider text-slate-400">
+      <div className="space-y-3">
+        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
           Quick Workflows
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {isPermitted('events:create') && (
             <Link
               href="/dashboard/events/new"
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0F2C59] shadow-md hover:shadow-xl transition-all flex items-center justify-between group"
+              className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0F2C59] shadow-sm transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#0F2C59] flex items-center justify-center font-bold shrink-0">
-                  <PlusCircle className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-blue-50 text-[#0F2C59] flex items-center justify-center font-bold shrink-0 border border-blue-100">
+                  <PlusCircle className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0F2C59] transition-colors">
                     Register New Event
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Faculty 6-step guided wizard</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Faculty 6-step guided wizard</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-0.5 transition-all" />
             </Link>
           )}
 
           {isPermitted('assignments:manage') && (
             <Link
               href="/dashboard/assignments"
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0F2C59] shadow-md hover:shadow-xl transition-all flex items-center justify-between group"
+              className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0F2C59] shadow-sm transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold shrink-0">
-                  <Users className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-800 flex items-center justify-center font-bold shrink-0 border border-amber-100">
+                  <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0F2C59] transition-colors">
                     Coverage Assignments
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Assign media team members & Editor</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Assign media team members & Editor</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-0.5 transition-all" />
             </Link>
           )}
 
           {isPermitted('media:upload') && (
             <Link
               href="/dashboard/uploads"
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0F2C59] shadow-md hover:shadow-xl transition-all flex items-center justify-between group"
+              className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0F2C59] shadow-sm transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-800 flex items-center justify-center font-bold shrink-0">
-                  <UploadCloud className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-purple-50 text-purple-800 flex items-center justify-center font-bold shrink-0 border border-purple-100">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0F2C59] transition-colors">
                     Upload Media Assets
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Geotagged photos, raw press & reels</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Geotagged photos, raw press & reels</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-0.5 transition-all" />
             </Link>
           )}
 
           {isPermitted('approvals:view') && (
             <Link
               href="/dashboard/approvals"
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0F2C59] shadow-md hover:shadow-xl transition-all flex items-center justify-between group"
+              className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0F2C59] shadow-sm transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-800 flex items-center justify-center font-bold shrink-0">
-                  <FileCheck className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-800 flex items-center justify-center font-bold shrink-0 border border-indigo-100">
+                  <FileCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0F2C59] transition-colors">
                     Department Approvals
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">Dean / HOD / Coordinator workflow</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Dean / HOD / Coordinator workflow</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-0.5 transition-all" />
             </Link>
           )}
 
           {isPermitted('reports:generate') && user?.role !== 'ADMIN' && (
             <Link
               href="/dashboard/reports"
-              className="bg-white p-6 rounded-2xl border border-slate-200 hover:border-[#0F2C59] shadow-md hover:shadow-xl transition-all flex items-center justify-between group"
+              className="bg-white p-5 rounded-xl border border-slate-200 hover:border-[#0F2C59] shadow-sm transition-all flex items-center justify-between group"
             >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold shrink-0">
-                  <FileSpreadsheet className="w-6 h-6" />
+              <div className="flex items-center gap-3.5">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold shrink-0 border border-emerald-100">
+                  <FileSpreadsheet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-black text-slate-900 group-hover:text-[#0F2C59] transition-colors">
+                  <h4 className="text-xs font-bold text-slate-900 group-hover:text-[#0F2C59] transition-colors">
                     Academic Report Generator
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">8 official formats + PDF/Word export</p>
+                  <p className="text-[11px] text-slate-500 mt-0.5">8 official formats + PDF/Word export</p>
                 </div>
               </div>
-              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-1 transition-all" />
+              <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-[#0F2C59] group-hover:translate-x-0.5 transition-all" />
             </Link>
           )}
         </div>
       </div>
 
       {/* RECENT ACADEMIC EVENTS TABLE */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-lg overflow-hidden">
-        <div className="p-6 sm:p-7 border-b border-slate-100 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-white">
           <div>
-            <h2 className="text-lg font-black text-slate-900">Registered Department Events</h2>
+            <h2 className="text-base font-bold text-slate-900">Registered Department Events</h2>
             <p className="text-xs text-slate-500 mt-0.5">Active institutional events, venue details, and workflow progress</p>
           </div>
           <Link
             href="/dashboard/calendar"
-            className="text-xs font-black text-[#0F2C59] hover:text-[#D4AF37] flex items-center gap-1.5 transition-colors bg-blue-50 px-4 py-2 rounded-xl border border-blue-200"
+            className="text-xs font-bold text-[#0F2C59] hover:bg-blue-50 flex items-center gap-1.5 transition-colors px-3 py-1.5 rounded-lg border border-slate-200"
           >
-            <CalendarDays className="w-4 h-4" /> View Calendar &rarr;
+            <CalendarDays className="w-3.5 h-3.5" /> View Calendar &rarr;
           </Link>
         </div>
 
         {loading ? (
-          <div className="p-16 text-center text-xs text-slate-400">Loading department events...</div>
+          <div className="p-12 text-center text-xs text-slate-400">Loading department events...</div>
         ) : events.length === 0 ? (
-          <div className="p-16 text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-              <CalendarDays className="w-8 h-8" />
+          <div className="p-12 text-center space-y-3">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+              <CalendarDays className="w-6 h-6" />
             </div>
-            <p className="text-sm font-bold text-slate-600">No events registered yet in clean state mode.</p>
+            <p className="text-xs font-semibold text-slate-600">No events registered yet in clean state mode.</p>
             {isPermitted('events:create') && (
               <Link
                 href="/dashboard/events/new"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#0F2C59] to-[#162E4D] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg hover:from-[#162E4D] hover:to-slate-900 transition-all font-sans"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#0F2C59] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#162E4D] transition-all"
               >
                 <PlusCircle className="w-4 h-4" /> Register First Event
               </Link>
@@ -288,50 +282,50 @@ export default function DashboardOverview() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-[10.5px] font-black">
+              <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase tracking-wider text-[10.5px] font-bold">
                 <tr>
-                  <th className="px-6 py-4">Event Name</th>
-                  <th className="px-6 py-4">Category</th>
-                  <th className="px-6 py-4">Date & Venue</th>
-                  <th className="px-6 py-4">Organizer</th>
-                  <th className="px-6 py-4">Media Assets</th>
-                  <th className="px-6 py-4">Workflow Status</th>
-                  <th className="px-6 py-4 text-right">Action</th>
+                  <th className="px-5 py-3">Event Name</th>
+                  <th className="px-5 py-3">Category</th>
+                  <th className="px-5 py-3">Date & Venue</th>
+                  <th className="px-5 py-3">Organizer</th>
+                  <th className="px-5 py-3">Media Assets</th>
+                  <th className="px-5 py-3">Workflow Status</th>
+                  <th className="px-5 py-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {events.map((evt) => (
-                  <tr key={evt.id} className="hover:bg-blue-50/40 transition-colors">
-                    <td className="px-6 py-4 font-black text-slate-900">
+                  <tr key={evt.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-slate-900">
                       <Link href={`/dashboard/events/${evt.id}`} className="hover:text-[#0F2C59]">
                         {evt.name}
                       </Link>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-slate-800 font-bold text-[11px]">
-                        <Tag className="w-3.5 h-3.5 text-slate-400" />
+                    <td className="px-5 py-3.5">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold text-[11px] border border-slate-200">
+                        <Tag className="w-3 h-3 text-slate-400" />
                         {evt.category}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
-                      <div className="font-bold text-slate-900">{new Date(evt.dateTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-                      <div className="text-[11px] text-slate-400 font-medium">{evt.venue}</div>
+                    <td className="px-5 py-3.5 text-slate-600">
+                      <div className="font-semibold text-slate-900">{new Date(evt.dateTime).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      <div className="text-[11px] text-slate-500">{evt.venue}</div>
                     </td>
-                    <td className="px-6 py-4 text-slate-600 font-semibold">
+                    <td className="px-5 py-3.5 text-slate-600 font-medium">
                       {evt.createdBy?.name}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="bg-blue-50 text-[#0F2C59] border border-blue-200 px-3 py-1 rounded-full font-extrabold text-[11px]">
+                    <td className="px-5 py-3.5">
+                      <span className="bg-blue-50 text-[#0F2C59] border border-blue-200 px-2.5 py-0.5 rounded font-bold text-[11px]">
                         {evt.mediaAssets?.length || 0} Assets
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <StatusBadge status={evt.status} size="sm" />
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-5 py-3.5 text-right">
                       <Link
                         href={`/dashboard/events/${evt.id}`}
-                        className="text-xs font-extrabold text-[#0F2C59] hover:text-white hover:bg-[#0F2C59] px-4 py-2 rounded-xl border border-blue-200 transition-all inline-block shadow-sm"
+                        className="text-xs font-bold text-[#0F2C59] hover:bg-[#0F2C59] hover:text-white px-3 py-1.5 rounded-lg border border-slate-200 transition-all inline-block shadow-sm"
                       >
                         View Event
                       </Link>

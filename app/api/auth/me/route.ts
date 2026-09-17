@@ -16,7 +16,7 @@ export async function GET() {
       where: { role: user.role },
     });
     permissions = dbPerms.map((p) => p.permissionCode);
-  } catch (e) {}
+  } catch (e) { }
 
   if (permissions.length === 0) {
     permissions = DEFAULT_ROLE_PERMISSIONS[user.role.toUpperCase()] || [];

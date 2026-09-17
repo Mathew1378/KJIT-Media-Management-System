@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
@@ -19,42 +18,41 @@ export default function StatCard({
   subtitle,
   icon: Icon,
   colorVariant = 'navy',
-  delay = 0,
 }: StatCardProps) {
   const variantStyles = {
     navy: {
-      bg: 'bg-white hover:bg-slate-50',
-      border: 'border-slate-200 hover:border-[#0F2C59]',
+      bg: 'bg-white hover:border-[#0F2C59]',
+      border: 'border-slate-200',
       iconBg: 'bg-blue-50 text-[#0F2C59]',
       valColor: 'text-[#0F2C59]',
       accentLine: 'bg-[#0F2C59]',
     },
     gold: {
-      bg: 'bg-white hover:bg-amber-50/40',
-      border: 'border-slate-200 hover:border-amber-400',
-      iconBg: 'bg-amber-50 text-amber-700',
-      valColor: 'text-amber-900',
+      bg: 'bg-white hover:border-amber-500',
+      border: 'border-slate-200',
+      iconBg: 'bg-amber-50 text-amber-800',
+      valColor: 'text-slate-900',
       accentLine: 'bg-[#D4AF37]',
     },
     emerald: {
-      bg: 'bg-white hover:bg-emerald-50/40',
-      border: 'border-slate-200 hover:border-emerald-400',
-      iconBg: 'bg-emerald-50 text-emerald-700',
-      valColor: 'text-emerald-900',
+      bg: 'bg-white hover:border-emerald-500',
+      border: 'border-slate-200',
+      iconBg: 'bg-emerald-50 text-emerald-800',
+      valColor: 'text-slate-900',
       accentLine: 'bg-emerald-600',
     },
     purple: {
-      bg: 'bg-white hover:bg-purple-50/40',
-      border: 'border-slate-200 hover:border-purple-400',
-      iconBg: 'bg-purple-50 text-purple-700',
-      valColor: 'text-purple-900',
+      bg: 'bg-white hover:border-purple-500',
+      border: 'border-slate-200',
+      iconBg: 'bg-purple-50 text-purple-800',
+      valColor: 'text-slate-900',
       accentLine: 'bg-purple-600',
     },
     amber: {
-      bg: 'bg-white hover:bg-amber-50/50',
-      border: 'border-slate-200 hover:border-amber-500',
-      iconBg: 'bg-amber-100 text-amber-800',
-      valColor: 'text-amber-950',
+      bg: 'bg-white hover:border-amber-500',
+      border: 'border-slate-200',
+      iconBg: 'bg-amber-50 text-amber-800',
+      valColor: 'text-slate-900',
       accentLine: 'bg-amber-500',
     },
   };
@@ -62,35 +60,32 @@ export default function StatCard({
   const style = variantStyles[colorVariant] || variantStyles.navy;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay }}
-      className={`relative overflow-hidden rounded-2xl p-6 sm:p-7 border shadow-md transition-all duration-300 group hover:-translate-y-1 ${style.bg} ${style.border}`}
+    <div
+      className={`relative overflow-hidden rounded-xl p-5 border shadow-sm transition-all duration-200 ${style.bg} ${style.border}`}
     >
-      <div className={`absolute top-0 left-0 right-0 h-1.5 ${style.accentLine}`} />
+      <div className={`absolute top-0 left-0 right-0 h-1 ${style.accentLine}`} />
 
-      <div className="flex items-start justify-between gap-4 mb-4">
+      <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1">
+          <span className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
             {title}
           </span>
-          <div className={`text-4xl sm:text-5xl font-black tracking-tight ${style.valColor}`}>
+          <div className={`text-3xl sm:text-4xl font-black tracking-tight ${style.valColor}`}>
             {value}
           </div>
         </div>
 
-        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-inner transition-transform group-hover:scale-110 ${style.iconBg}`}>
-          <Icon className="w-6 h-6" />
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-slate-100 ${style.iconBg}`}>
+          <Icon className="w-5 h-5" />
         </div>
       </div>
 
-      <div className="pt-2 border-t border-slate-100 text-xs font-semibold text-slate-500 flex items-center justify-between">
+      <div className="pt-2 border-t border-slate-100 text-[11px] font-medium text-slate-500 flex items-center justify-between">
         <span>{subtitle}</span>
-        <span className="text-[10px] text-slate-400 group-hover:text-slate-600 transition-colors">
-          Real-time System Metric
+        <span className="text-[9.5px] text-slate-400">
+          System Metric
         </span>
       </div>
-    </motion.div>
+    </div>
   );
 }

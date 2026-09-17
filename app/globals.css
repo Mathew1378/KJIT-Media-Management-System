@@ -4,22 +4,37 @@
 
 :root {
   /* Centralized Institutional Design Tokens */
-  --brand-primary: #0F2C59;        /* Kristu Jayanti Royal Navy */
-  --brand-secondary: #162E4D;      /* Deep Slate Navy */
-  --brand-accent: #D4AF37;         /* Official Institutional Gold */
-  --brand-accent-hover: #B89628;   /* Deep Gold */
-  --brand-dark: #0A192F;           /* Dark Midnight */
-  --background: #F8FAFC;           /* Warm Slate Light Background */
-  --surface: #FFFFFF;              /* Pure White Card Surface */
-  --surface-muted: #F1F5F9;        /* Light Muted Surface */
-  --text-primary: #0F172A;         /* Slate 900 Text */
-  --text-secondary: #475569;       /* Slate 600 Text */
-  --border: #E2E8F0;               /* Slate 200 Border */
-  --success: #059669;              /* Emerald 600 */
-  --warning: #D97706;              /* Amber 600 */
-  --danger: #DC2626;               /* Red 600 */
-  --info: #2563EB;                 /* Blue 600 */
-  
+  --brand-primary: #0F2C59;
+  /* Kristu Jayanti Royal Navy */
+  --brand-secondary: #162E4D;
+  /* Deep Slate Navy */
+  --brand-accent: #D4AF37;
+  /* Official Institutional Gold */
+  --brand-accent-hover: #B89628;
+  /* Deep Gold */
+  --brand-dark: #0A192F;
+  /* Dark Midnight */
+  --background: #F8FAFC;
+  /* Warm Slate Light Background */
+  --surface: #FFFFFF;
+  /* Pure White Card Surface */
+  --surface-muted: #F1F5F9;
+  /* Light Muted Surface */
+  --text-primary: #0F172A;
+  /* Slate 900 Text */
+  --text-secondary: #475569;
+  /* Slate 600 Text */
+  --border: #E2E8F0;
+  /* Slate 200 Border */
+  --success: #059669;
+  /* Emerald 600 */
+  --warning: #D97706;
+  /* Amber 600 */
+  --danger: #DC2626;
+  /* Red 600 */
+  --info: #2563EB;
+  /* Blue 600 */
+
   --foreground-rgb: 15, 23, 42;
   --background-rgb: 248, 250, 252;
 }
@@ -31,37 +46,42 @@ body {
   overflow-x: hidden;
 }
 
-/* Institutional Design System Utilities */
+/* Institutional Design System Utilities - KJusys ERP Theme */
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 10px 30px -10px rgba(15, 44, 89, 0.08);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 44, 89, 0.05);
+  border-radius: 0.75rem;
 }
 
 .glass-card-dark {
-  background: rgba(15, 44, 89, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  box-shadow: 0 20px 40px -15px rgba(10, 25, 47, 0.4);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 44, 89, 0.05);
+  border-radius: 0.75rem;
 }
 
 .glass-nav {
-  background: rgba(15, 44, 89, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-b: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFFFFF;
+  border-bottom: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 44, 89, 0.05);
 }
 
-/* Subtle Golden Glow Accent */
-.gold-glow {
-  box-shadow: 0 0 25px -5px rgba(212, 175, 55, 0.3);
+.erp-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px 0 rgba(15, 44, 89, 0.05);
 }
 
-.gold-border-gradient {
-  border-image: linear-gradient(to right, #D4AF37, #FEF08A, #D4AF37) 1;
+.erp-table-header {
+  background-color: #F8FAFC;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #E2E8F0;
 }
 
 /* Custom Scrollbar */
@@ -69,13 +89,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #F1F5F9;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #94A3B8;
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #0F2C59;
 }
@@ -96,7 +119,8 @@ body {
     visibility: hidden !important;
   }
 
-  .print-area, .print-area * {
+  .print-area,
+  .print-area * {
     visibility: visible !important;
   }
 

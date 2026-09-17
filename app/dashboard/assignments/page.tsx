@@ -35,11 +35,11 @@ export default function TeamAssignmentsPage() {
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
 
-  // "Register New Member" Modal state
+  // "Register New Person" Modal state
   const [showNewUserModal, setShowNewUserModal] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberRole, setNewMemberRole] = useState('MEDIA_MEMBER');
+  const [newMemberEventRole, setNewMemberEventRole] = useState<'PHOTOGRAPHER' | 'VIDEOGRAPHER' | 'EDITOR'>('PHOTOGRAPHER');
   const [creatingUser, setCreatingUser] = useState(false);
   const [modalError, setModalError] = useState('');
 
@@ -54,7 +54,9 @@ export default function TeamAssignmentsPage() {
           setMediaMembers(members.length > 0 ? members : data.users);
         }
       })
-      .catch((err) => {});
+      .catch((err) => {
+        console.error('Directory fetch error:', err);
+      });
   };
 
   useEffect(() => {
@@ -115,7 +117,7 @@ export default function TeamAssignmentsPage() {
         body: JSON.stringify({
           name: newMemberName,
           email: newMemberEmail,
-          role: newMemberRole,
+          role: 'MEDIA_MEMBER',
           department: 'Department of Media & Communication',
         }),
       });
@@ -135,15 +137,16 @@ export default function TeamAssignmentsPage() {
         return [...prev, createdUser];
       });
 
-      // Automatically append newly registered member to assignments list for selected event
+      // Automatically append newly registered member to assignments list with the selected event role
       setAssignmentsList((prev) => [
         ...prev,
-        { userId: createdUser.id, roleInEvent: 'PHOTOGRAPHER' },
+        { userId: createdUser.id, roleInEvent: newMemberEventRole },
       ]);
 
-      setMsg(`Registered ${createdUser.name} and added to assignment list!`);
+      setMsg(`Registered ${createdUser.name} as ${newMemberEventRole} and added to assignment list!`);
       setNewMemberName('');
       setNewMemberEmail('');
+      setNewMemberEventRole('PHOTOGRAPHER');
       setShowNewUserModal(false);
       setCreatingUser(false);
     } catch (err: any) {
@@ -155,6 +158,15 @@ export default function TeamAssignmentsPage() {
   const handleSaveAssignments = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEventId) return;
+
+    // Filter out rows where userId is blank
+    const validPayload = assignmentsList.filter((a) => a.userId && a.userId.trim() !== '');
+
+    if (validPayload.length === 0 && assignmentsList.length > 0) {
+      setError('Please select a valid media team staff member for each row.');
+      return;
+    }
+
     setSaving(true);
     setMsg('');
     setError('');
@@ -163,7 +175,7 @@ export default function TeamAssignmentsPage() {
       const res = await fetch(`/api/events/${selectedEventId}/assign`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignments: assignmentsList }),
+        body: JSON.stringify({ assignments: validPayload }),
       });
 
       const data = await res.json();
@@ -183,7 +195,7 @@ export default function TeamAssignmentsPage() {
           if (d.events) setEvents(d.events);
         });
     } catch (err: any) {
-      setError('Server error');
+      setError('Server connection error');
       setSaving(false);
     }
   };
@@ -320,11 +332,15 @@ export default function TeamAssignmentsPage() {
                         onChange={(e) => updateAssignment(idx, 'userId', e.target.value)}
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900"
                       >
-                        {mediaMembers.map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name} ({m.email}) [{m.role}]
-                          </option>
-                        ))}
+                        {mediaMembers.length === 0 ? (
+                          <option value="">No media staff found</option>
+                        ) : (
+                          mediaMembers.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name} ({m.email}) [{m.role}]
+                            </option>
+                          ))
+                        )}
                       </select>
                     </div>
 
@@ -370,14 +386,14 @@ export default function TeamAssignmentsPage() {
         )}
       </div>
 
-      {/* Modal: Register New Team Member */}
+      {/* Modal: Register New Person */}
       {showNewUserModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl border border-slate-200 p-6 space-y-5">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                 <UserPlus className="w-5 h-5 text-purple-700" />
-                Register New Media Team Member
+                Register New Person
               </h3>
               <button
                 onClick={() => setShowNewUserModal(false)}
@@ -423,19 +439,16 @@ export default function TeamAssignmentsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Team Role</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Role in Event</label>
                 <select
-                  value={newMemberRole}
-                  onChange={(e) => setNewMemberRole(e.target.value)}
+                  value={newMemberEventRole}
+                  onChange={(e) => setNewMemberEventRole(e.target.value as any)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 font-bold"
                 >
-                  <option value="MEDIA_MEMBER">MEDIA MEMBER (Photographer / Editor)</option>
-                  <option value="MEDIA_HEAD">MEDIA TEAM HEAD</option>
+                  <option value="PHOTOGRAPHER">PHOTOGRAPHER</option>
+                  <option value="VIDEOGRAPHER">VIDEOGRAPHER</option>
+                  <option value="EDITOR">EDITOR</option>
                 </select>
-              </div>
-
-              <div className="text-[11px] text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                Default login password will be set to <code className="font-mono text-purple-700 font-bold">password123</code>.
               </div>
 
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">

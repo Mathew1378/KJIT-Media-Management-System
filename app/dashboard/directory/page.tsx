@@ -42,7 +42,7 @@ export default function ActiveUserDirectoryPage() {
         <ShieldAlert className="w-12 h-12 text-amber-500 mx-auto" />
         <h2 className="text-lg font-black text-slate-900 font-serif">Restricted Directory Access</h2>
         <p className="text-xs text-slate-600 leading-relaxed font-medium">
-          Faculty members do not have access to the Active User Directory. Please use your Faculty Dashboard to manage events and reports.
+          Non-administrative users do not have access to the Active User Directory. Only System Administrators can access this directory.
         </p>
         <Link
           href="/dashboard"

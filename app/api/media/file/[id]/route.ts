@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
 import { storageService } from '@/lib/storage/StorageService';
+
+export const dynamic = 'force-dynamic';
 import { Readable } from 'stream';
 
 export async function GET(req: Request, { params }: { params: { id: string } }) {

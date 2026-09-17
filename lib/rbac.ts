@@ -27,30 +27,30 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   MEDIA_MEMBER: [
     'dashboard:view',
     'media:upload',
-    'directory:view',
     'events:directory',
     'calendar:view',
   ],
   DEAN: [
     'dashboard:view',
     'approvals:view',
-    'directory:view',
     'events:directory',
     'calendar:view',
   ],
   HOD: [
     'dashboard:view',
     'approvals:view',
-    'directory:view',
     'events:directory',
     'calendar:view',
   ],
   COORDINATOR: [
     'dashboard:view',
     'approvals:view',
-    'directory:view',
     'events:directory',
     'calendar:view',
+  ],
+  SOCIAL_MEDIA_HANDLER: [
+    'dashboard:view',
+    'social:manage',
   ],
 };
 
