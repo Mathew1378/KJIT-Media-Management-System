@@ -7,7 +7,7 @@ import {
   CheckCircle2,
   Clock,
   Instagram,
-  Facebook,
+  Linkedin,
   Video,
   Sparkles,
   Calendar,
@@ -94,7 +94,7 @@ export default function SocialMediaDashboardPage() {
               Approved Media Reels Publishing Portal
             </h1>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-              Access institutionally approved reels, generate AI captions, and publish to official Instagram & Facebook channels.
+              Access institutionally approved reels, generate AI captions, and publish to official Instagram & LinkedIn channels.
             </p>
           </div>
         </div>
@@ -126,14 +126,14 @@ export default function SocialMediaDashboardPage() {
           <StatCard
             title="PARTIALLY POSTED"
             value={loading ? '...' : partialCount}
-            subtitle="Posted to 1 platform (IG or FB)"
+            subtitle="Posted to 1 platform (IG or LinkedIn)"
             icon={Share2}
             colorVariant="navy"
           />
           <StatCard
             title="PUBLISHED"
             value={loading ? '...' : publishedCount}
-            subtitle="Posted to both Instagram & Facebook"
+            subtitle="Posted to both Instagram & LinkedIn"
             icon={CheckCircle2}
             colorVariant="emerald"
           />
@@ -302,7 +302,7 @@ export default function SocialMediaDashboardPage() {
                     </div>
 
                     {/* Published URL Links Preview */}
-                    {(pub?.instagramUrl || pub?.facebookUrl) && (
+                    {(pub?.instagramUrl || pub?.linkedinUrl) && (
                       <div className="space-y-1 pt-1 text-[11px]">
                         {pub.instagramUrl && (
                           <a
@@ -317,15 +317,15 @@ export default function SocialMediaDashboardPage() {
                           </a>
                         )}
 
-                        {pub.facebookUrl && (
+                        {pub.linkedinUrl && (
                           <a
-                            href={pub.facebookUrl}
+                            href={pub.linkedinUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400 font-semibold hover:underline truncate"
+                            className="flex items-center gap-1.5 text-blue-700 dark:text-blue-400 font-semibold hover:underline truncate"
                           >
-                            <Facebook className="w-3.5 h-3.5 shrink-0" />
-                            <span className="truncate">Facebook Reel Link</span>
+                            <Linkedin className="w-3.5 h-3.5 shrink-0" />
+                            <span className="truncate">LinkedIn Post Link</span>
                             <ExternalLink className="w-3 h-3 shrink-0 ml-auto" />
                           </a>
                         )}

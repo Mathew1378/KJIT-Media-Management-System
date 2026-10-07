@@ -90,7 +90,7 @@ const ROLE_CONFIGS: Record<string, RoleConfig> = {
     badgeColor: 'bg-pink-50 text-pink-900 border-pink-200',
     demoEmail: 'socialmedia@kristujayanti.edu.in',
     demoPass: 'password123',
-    description: 'Access fully approved department reels, generate AI captions, and publish to Instagram & Facebook.',
+    description: 'Access fully approved department reels, generate AI captions, and publish to Instagram & LinkedIn.',
   },
 };
 

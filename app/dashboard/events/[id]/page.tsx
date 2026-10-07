@@ -26,6 +26,7 @@ import {
 import GoogleDriveCard from '@/components/GoogleDriveCard';
 import StatusBadge from '@/components/StatusBadge';
 import ApprovalTimeline from '@/components/ApprovalTimeline';
+import { parseChiefGuest } from '@/lib/dateUtils';
 
 interface EventDetail {
   id: string;
@@ -40,6 +41,8 @@ interface EventDetail {
   specialInstructions: string;
   mediaDeadline: string;
   status: string;
+  posterFileId?: string;
+  posterFileName?: string;
   driveFolderUrl?: string;
   driveFolderId?: string;
   driveFolderAddedBy?: string;
@@ -226,10 +229,34 @@ export default function EventDetailPage() {
               </div>
             </div>
 
-            {event.chiefGuest && (
-              <div className="pt-2 border-t border-slate-100 text-xs">
-                <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Keynote / Chief Guest</span>
-                <div className="font-black text-slate-900 text-sm">{event.chiefGuest}</div>
+            {(() => {
+              const cg = parseChiefGuest(event.chiefGuest);
+              if (!cg.name) return null;
+              return (
+                <div className="pt-2 border-t border-slate-100 text-xs">
+                  <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Keynote / Chief Guest</span>
+                  <div className="font-black text-slate-900 text-sm">
+                    {cg.name}
+                    {(cg.designation || cg.organisation) && (
+                      <span className="text-xs text-slate-600 font-semibold block sm:inline sm:ml-2">
+                        ({[cg.designation, cg.organisation].filter(Boolean).join(', ')})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {event.posterFileId && (
+              <div className="pt-2 border-t border-slate-100 text-xs space-y-2">
+                <span className="text-[10px] font-black uppercase text-slate-400 block">Event Poster</span>
+                <div className="max-w-md rounded-2xl overflow-hidden border border-slate-200 shadow-md">
+                  <img
+                    src={`/api/media/file/${event.posterFileId}`}
+                    alt={`${event.name} Poster`}
+                    className="w-full max-h-72 object-contain bg-slate-50"
+                  />
+                </div>
               </div>
             )}
 

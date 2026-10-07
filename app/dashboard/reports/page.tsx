@@ -25,7 +25,7 @@ import * as XLSX from 'xlsx';
 import mammoth from 'mammoth';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import KjitLogo from '@/components/KjitLogo';
+import { formatChiefGuest } from '@/lib/dateUtils';
 
 interface EventData {
   id: string;
@@ -39,7 +39,7 @@ interface EventData {
   mediaAssets: { id: string; fileName: string; fileId: string; fileType: string; caption: string }[];
   socialMediaPublication?: {
     instagramUrl?: string;
-    facebookUrl?: string;
+    linkedinUrl?: string;
     status?: string;
   } | null;
 }
@@ -160,7 +160,7 @@ export default function ReportGeneratorPage() {
           initialValues[field.id] = new Date(activeEvent.dateTime).toLocaleString();
         if (field.autoFillKey === 'venue') initialValues[field.id] = activeEvent.venue;
         if (field.autoFillKey === 'expectedAudience') initialValues[field.id] = activeEvent.expectedAudience;
-        if (field.autoFillKey === 'chiefGuest') initialValues[field.id] = activeEvent.chiefGuest || 'N/A';
+        if (field.autoFillKey === 'chiefGuest') initialValues[field.id] = formatChiefGuest(activeEvent.chiefGuest);
         if (field.autoFillKey === 'createdByName') initialValues[field.id] = activeEvent.createdBy?.name || '';
       } else {
         initialValues[field.id] = '';
@@ -172,7 +172,7 @@ export default function ReportGeneratorPage() {
       const pub = activeEvent.socialMediaPublication;
       const links = [];
       if (pub.instagramUrl) links.push(`Instagram Published Reel: ${pub.instagramUrl}`);
-      if (pub.facebookUrl) links.push(`Facebook Published Reel: ${pub.facebookUrl}`);
+      if (pub.linkedinUrl) links.push(`LinkedIn Published Post: ${pub.linkedinUrl}`);
       if (links.length > 0) {
         initialValues['socialMediaLink'] = links.join('\n');
       }

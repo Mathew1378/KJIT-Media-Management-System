@@ -25,9 +25,9 @@ export async function POST(req: Request) {
       eventId,
       caption,
       instagramUrl,
-      facebookUrl,
+      linkedinUrl,
       instagramPosted,
-      facebookPosted,
+      linkedinPosted,
     } = body;
 
     if (!eventId) {
@@ -61,24 +61,24 @@ export async function POST(req: Request) {
 
     // Validate URLs if provided
     const cleanIgUrl = (instagramUrl || '').trim();
-    const cleanFbUrl = (facebookUrl || '').trim();
+    const cleanLinkedinUrl = (linkedinUrl || '').trim();
 
     if (cleanIgUrl && !isValidUrl(cleanIgUrl)) {
       return NextResponse.json({ error: 'Please enter a valid Instagram URL (e.g. https://instagram.com/p/...)' }, { status: 400 });
     }
-    if (cleanFbUrl && !isValidUrl(cleanFbUrl)) {
-      return NextResponse.json({ error: 'Please enter a valid Facebook URL (e.g. https://facebook.com/reel/...)' }, { status: 400 });
+    if (cleanLinkedinUrl && !isValidUrl(cleanLinkedinUrl)) {
+      return NextResponse.json({ error: 'Please enter a valid LinkedIn URL (e.g. https://linkedin.com/...)' }, { status: 400 });
     }
 
     // Determine posting booleans based on URL presence or checkbox
     const isIgPosted = Boolean(instagramPosted || cleanIgUrl.length > 0);
-    const isFbPosted = Boolean(facebookPosted || cleanFbUrl.length > 0);
+    const isLinkedinPosted = Boolean(linkedinPosted || cleanLinkedinUrl.length > 0);
 
     // Derive status
     let status = 'AWAITING_SOCIAL_MEDIA';
-    if (isIgPosted && isFbPosted) {
+    if (isIgPosted && isLinkedinPosted) {
       status = 'PUBLISHED';
-    } else if (isIgPosted || isFbPosted) {
+    } else if (isIgPosted || isLinkedinPosted) {
       status = 'PARTIALLY_POSTED';
     }
 
@@ -92,22 +92,22 @@ export async function POST(req: Request) {
         reelId: reelId,
         caption: caption || '',
         instagramUrl: cleanIgUrl || null,
-        facebookUrl: cleanFbUrl || null,
+        linkedinUrl: cleanLinkedinUrl || null,
         instagramPosted: isIgPosted,
-        facebookPosted: isFbPosted,
+        linkedinPosted: isLinkedinPosted,
         status: status,
-        postedAt: (isIgPosted || isFbPosted) ? new Date() : null,
+        postedAt: (isIgPosted || isLinkedinPosted) ? new Date() : null,
         postedById: user.id,
       },
       update: {
         reelId: reelId || undefined,
         caption: caption !== undefined ? caption : undefined,
         instagramUrl: cleanIgUrl || null,
-        facebookUrl: cleanFbUrl || null,
+        linkedinUrl: cleanLinkedinUrl || null,
         instagramPosted: isIgPosted,
-        facebookPosted: isFbPosted,
+        linkedinPosted: isLinkedinPosted,
         status: status,
-        postedAt: (isIgPosted || isFbPosted) ? new Date() : undefined,
+        postedAt: (isIgPosted || isLinkedinPosted) ? new Date() : undefined,
         postedById: user.id,
       },
     });
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       userName: user.name,
       role: user.role,
       action: auditAction,
-      details: `Saved social media publication for event "${event.name}". Status: ${status}. Instagram: ${cleanIgUrl ? 'Posted' : 'Not posted'}, Facebook: ${cleanFbUrl ? 'Posted' : 'Not posted'}.`,
+      details: `Saved social media publication for event "${event.name}". Status: ${status}. Instagram: ${cleanIgUrl ? 'Posted' : 'Not posted'}, LinkedIn: ${cleanLinkedinUrl ? 'Posted' : 'Not posted'}.`,
     });
 
     return NextResponse.json({ success: true, publication });

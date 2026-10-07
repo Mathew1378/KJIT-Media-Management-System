@@ -52,6 +52,12 @@ model Event {
   status              String        @default("REGISTERED") 
   // Statuses: REGISTERED, ASSIGNED, MEDIA_UPLOADED, REEL_SUBMITTED, DEAN_APPROVED, HOD_APPROVED, PUBLISHED, REJECTED
 
+  posterFileId        String?
+  posterFileName      String?
+  posterDrivePath     String?
+  posterMimeType      String?
+  posterUploadedAt    DateTime?
+
   driveFolderUrl      String?
   driveFolderId       String?
   driveFolderAddedBy  String?
@@ -142,9 +148,9 @@ model SocialMediaPublication {
   reel            MediaAsset? @relation(fields: [reelId], references: [id], onDelete: SetNull)
   caption         String?
   instagramUrl    String?
-  facebookUrl     String?
+  linkedinUrl     String?
   instagramPosted Boolean     @default(false)
-  facebookPosted  Boolean     @default(false)
+  linkedinPosted  Boolean     @default(false)
   status          String      @default("AWAITING_SOCIAL_MEDIA") // AWAITING_SOCIAL_MEDIA, PARTIALLY_POSTED, PUBLISHED
   postedAt        DateTime?
   postedById      String?

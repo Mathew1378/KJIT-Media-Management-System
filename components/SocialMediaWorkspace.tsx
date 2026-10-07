@@ -13,7 +13,7 @@ import {
   ExternalLink,
   Share2,
   Instagram,
-  Facebook,
+  Linkedin,
   AlertCircle,
   Clock,
   Save,
@@ -21,6 +21,7 @@ import {
   Check,
   ShieldCheck,
 } from 'lucide-react';
+import { formatChiefGuest } from '@/lib/dateUtils';
 
 interface MediaAsset {
   id: string;
@@ -42,9 +43,9 @@ interface Publication {
   id?: string;
   caption?: string;
   instagramUrl?: string;
-  facebookUrl?: string;
+  linkedinUrl?: string;
   instagramPosted?: boolean;
-  facebookPosted?: boolean;
+  linkedinPosted?: boolean;
   status?: string;
   postedAt?: string;
 }
@@ -76,12 +77,12 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
 
   const [caption, setCaption] = useState<string>(publication.caption || '');
   const [instagramUrl, setInstagramUrl] = useState<string>(publication.instagramUrl || '');
-  const [facebookUrl, setFacebookUrl] = useState<string>(publication.facebookUrl || '');
+  const [linkedinUrl, setLinkedinUrl] = useState<string>(publication.linkedinUrl || '');
   const [instagramPosted, setInstagramPosted] = useState<boolean>(
     publication.instagramPosted || Boolean(publication.instagramUrl)
   );
-  const [facebookPosted, setFacebookPosted] = useState<boolean>(
-    publication.facebookPosted || Boolean(publication.facebookUrl)
+  const [linkedinPosted, setLinkedinPosted] = useState<boolean>(
+    publication.linkedinPosted || Boolean(publication.linkedinUrl)
   );
 
   const [generatingCaption, setGeneratingCaption] = useState(false);
@@ -93,12 +94,12 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
 
   // Derive status
   const isIgActive = instagramPosted || instagramUrl.trim().length > 0;
-  const isFbActive = facebookPosted || facebookUrl.trim().length > 0;
+  const isLinkedinActive = linkedinPosted || linkedinUrl.trim().length > 0;
   
   let currentDerivedStatus = 'AWAITING_SOCIAL_MEDIA';
-  if (isIgActive && isFbActive) {
+  if (isIgActive && isLinkedinActive) {
     currentDerivedStatus = 'PUBLISHED';
-  } else if (isIgActive || isFbActive) {
+  } else if (isIgActive || isLinkedinActive) {
     currentDerivedStatus = 'PARTIALLY_POSTED';
   }
 
@@ -156,11 +157,11 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
       }
     }
 
-    if (facebookUrl.trim()) {
+    if (linkedinUrl.trim()) {
       try {
-        new URL(facebookUrl.trim());
+        new URL(linkedinUrl.trim());
       } catch (e) {
-        setMsg({ type: 'error', text: 'Invalid Facebook URL format.' });
+        setMsg({ type: 'error', text: 'Invalid LinkedIn URL format.' });
         setSaving(false);
         return;
       }
@@ -174,9 +175,9 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
           eventId: event.id,
           caption,
           instagramUrl: instagramUrl.trim(),
-          facebookUrl: facebookUrl.trim(),
+          linkedinUrl: linkedinUrl.trim(),
           instagramPosted: isIgActive,
-          facebookPosted: isFbActive,
+          linkedinPosted: isLinkedinActive,
         }),
       });
 
@@ -291,7 +292,7 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
                   {event.chiefGuest && (
                     <div className="pt-1 border-t border-slate-200 dark:border-slate-700">
                       <span className="font-bold text-slate-900 dark:text-white">Chief Guest:</span>{' '}
-                      {event.chiefGuest}
+                      {formatChiefGuest(event.chiefGuest)}
                     </div>
                   )}
 
@@ -453,7 +454,7 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
                       <Share2 className="w-4 h-4 text-[#0F2C59] dark:text-blue-400" /> Social Media Publishing Status
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                      Post manually to Instagram / Facebook and record published reel URLs.
+                      Post manually to Instagram / LinkedIn and record published URLs.
                     </p>
                   </div>
 
@@ -508,33 +509,33 @@ export default function SocialMediaWorkspace({ event, onClose, onSaved }: Worksp
                   />
                 </div>
 
-                {/* Platform 2: Facebook */}
+                {/* Platform 2: LinkedIn */}
                 <div className="bg-blue-50/50 dark:bg-blue-950/20 p-4 rounded-xl border border-blue-200/80 dark:border-blue-900/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="flex items-center gap-2 text-xs font-bold text-blue-950 dark:text-blue-300 cursor-pointer">
-                      <Facebook className="w-4 h-4 text-blue-600 shrink-0" />
+                      <Linkedin className="w-4 h-4 text-blue-700 shrink-0" />
                       <input
                         type="checkbox"
-                        checked={isFbActive}
-                        onChange={(e) => setFacebookPosted(e.target.checked)}
+                        checked={isLinkedinActive}
+                        onChange={(e) => setLinkedinPosted(e.target.checked)}
                         className="rounded border-blue-300 text-blue-600 focus:ring-blue-500"
                       />
-                      <span>Posted to Facebook</span>
+                      <span>Posted to LinkedIn</span>
                     </label>
 
                     <span className="text-[10px] text-blue-700 dark:text-blue-400 font-semibold">
-                      {isFbActive ? '✓ Posted' : 'Not posted'}
+                      {isLinkedinActive ? '✓ Posted' : 'Not posted'}
                     </span>
                   </div>
 
                   <input
                     type="url"
-                    value={facebookUrl}
+                    value={linkedinUrl}
                     onChange={(e) => {
-                      setFacebookUrl(e.target.value);
-                      if (e.target.value.trim().length > 0) setFacebookPosted(true);
+                      setLinkedinUrl(e.target.value);
+                      if (e.target.value.trim().length > 0) setLinkedinPosted(true);
                     }}
-                    placeholder="Paste Facebook Reel URL (e.g. https://www.facebook.com/reel/...)"
+                    placeholder="Paste LinkedIn Post URL (e.g. https://www.linkedin.com/posts/...)"
                     className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-blue-300 dark:border-blue-800 rounded-lg text-xs text-slate-900 dark:text-slate-100 focus:ring-1 focus:ring-blue-500 focus:outline-none font-mono"
                   />
                 </div>

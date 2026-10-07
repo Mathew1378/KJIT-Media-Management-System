@@ -27,6 +27,8 @@ interface CalendarEvent {
   mediaDeadline: string;
   status: string;
   assignments: any[];
+  posterFileId?: string;
+  posterFileName?: string;
 }
 
 export default function MediaCalendarPage() {
@@ -133,6 +135,16 @@ export default function MediaCalendarPage() {
                 className="group bg-white rounded-3xl border border-slate-200 p-6 shadow-lg hover:shadow-2xl hover:border-[#0F2C59]/40 transition-all duration-300 flex flex-col justify-between space-y-5"
               >
                 <div className="space-y-4">
+                  {evt.posterFileId && (
+                    <div className="w-full h-44 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shadow-inner">
+                      <img
+                        src={`/api/media/file/${evt.posterFileId}`}
+                        alt={`${evt.name} Poster`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider bg-blue-50 text-[#0F2C59] border border-blue-200 px-3 py-1 rounded-full">
                       {evt.category}

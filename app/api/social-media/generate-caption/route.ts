@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getSessionUser } from '@/lib/auth';
 import { logAudit } from '@/lib/audit';
+import { formatChiefGuest } from '@/lib/dateUtils';
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     if (apiKey) {
       try {
         const prompt = `You are an official social media manager for Kristu Jayanti Institute of Technology (KJIT), Bengaluru.
-Write an engaging, professional, and institutional Instagram/Facebook reel caption based STRICTLY on the following verified event data stored in the database.
+Write an engaging, professional, and institutional Instagram/LinkedIn reel caption based STRICTLY on the following verified event data stored in the database.
 
 CRITICAL INSTRUCTION:
 DO NOT invent any names, speakers, designations, dates, locations, achievements, statistics, attendance numbers, awards, claims, quotes, or unverified information. Use ONLY the factual information provided below.
@@ -74,7 +75,7 @@ VERIFIED EVENT DATA:
 - Venue: ${event.venue}
 - Organizing Department: ${event.createdBy?.department || 'School of Computer Science & Technology'}
 - Faculty Coordinator: ${event.createdBy?.name || 'N/A'}
-- Chief Guest / Speaker: ${event.chiefGuest || 'N/A'}
+- Chief Guest / Speaker: ${formatChiefGuest(event.chiefGuest)}
 - Dignitaries: ${dignitaries.length > 0 ? dignitaries.map((d: any) => `${d.name} (${d.designation}, ${d.organisation})`).join('; ') : 'N/A'}
 - Target Audience & Expected Count: ${event.expectedAudience}
 - Special Notes: ${event.specialInstructions || 'N/A'}
@@ -109,10 +110,11 @@ Format the caption with:
 
     // Fallback structured template generator strictly using database facts
     if (!generatedCaption) {
+      const formattedChiefGuest = formatChiefGuest(event.chiefGuest);
       const dignitaryStr = dignitaries.length > 0
         ? `\n\nVIP Guests & Dignitaries:\n` + dignitaries.map((d: any) => `• ${d.name} — ${d.designation} (${d.organisation})`).join('\n')
         : '';
-      const chiefGuestStr = event.chiefGuest ? `\n• Chief Guest / Speaker: ${event.chiefGuest}` : '';
+      const chiefGuestStr = formattedChiefGuest !== 'N/A' ? `\n• Chief Guest / Speaker: ${formattedChiefGuest}` : '';
 
       generatedCaption = `🎬 HIGHLIGHTS | ${event.name.toUpperCase()} 🌟
 

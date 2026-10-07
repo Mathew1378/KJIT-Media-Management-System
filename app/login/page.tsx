@@ -83,7 +83,7 @@ const ROLES: RoleCard[] = [
     title: 'Social Media Handler',
     roleKey: 'SOCIAL_MEDIA_HANDLER',
     route: '/login/social-media-handler',
-    desc: 'Access fully approved department reels, generate AI captions, and publish to Instagram and Facebook.',
+    desc: 'Access fully approved department reels, generate AI captions, and publish to Instagram and LinkedIn.',
     badge: 'Social Media Desk',
     badgeColor: 'bg-pink-50 text-pink-900 border-pink-200',
   },

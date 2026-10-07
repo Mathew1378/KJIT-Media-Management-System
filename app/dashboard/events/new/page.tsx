@@ -17,8 +17,10 @@ import {
   ArrowRight,
   Sparkles,
   Building2,
+  Upload,
 } from 'lucide-react';
 import Link from 'next/link';
+import { getMinDateTimeISTString, isPastIST } from '@/lib/dateUtils';
 
 interface Dignitary {
   name: string;
@@ -36,10 +38,15 @@ export default function RegisterEventPage() {
   const [dateTime, setDateTime] = useState('');
   const [venue, setVenue] = useState('');
   const [expectedAudience, setExpectedAudience] = useState('');
-  const [chiefGuest, setChiefGuest] = useState('');
+  const [chiefGuest, setChiefGuest] = useState({
+    name: '',
+    designation: '',
+    organisation: '',
+  });
   const [guestCount, setGuestCount] = useState(1);
   const [specialInstructions, setSpecialInstructions] = useState('');
   const [mediaDeadline, setMediaDeadline] = useState('');
+  const [posterFile, setPosterFile] = useState<File | null>(null);
 
   const [dignitaries, setDignitaries] = useState<Dignitary[]>([
     { name: '', designation: '', organisation: '' },
@@ -47,6 +54,8 @@ export default function RegisterEventPage() {
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const minDateTimeIST = getMinDateTimeISTString();
 
   const steps = [
     { number: 1, title: 'Event Information', subtitle: 'Title & Category' },
@@ -77,22 +86,38 @@ export default function RegisterEventPage() {
     setSubmitting(true);
     setError('');
 
+    // Client-side validation: disallow past date/time for scheduled event and media deadline (Asia/Kolkata IST)
+    if (isPastIST(dateTime)) {
+      setError('Event Date & Scheduled Start Time cannot be in the past (IST). Please select a current or future date and time.');
+      setSubmitting(false);
+      return;
+    }
+
+    if (isPastIST(mediaDeadline)) {
+      setError('Media Asset Submission Deadline cannot be in the past (IST). Please select a current or future deadline.');
+      setSubmitting(false);
+      return;
+    }
+
     try {
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('category', category);
+      formData.append('dateTime', dateTime);
+      formData.append('venue', venue);
+      formData.append('expectedAudience', expectedAudience);
+      formData.append('dignitaries', JSON.stringify(dignitaries.filter((d) => d.name.trim() !== '')));
+      formData.append('chiefGuest', JSON.stringify(chiefGuest));
+      formData.append('guestCount', String(guestCount));
+      formData.append('specialInstructions', specialInstructions);
+      formData.append('mediaDeadline', mediaDeadline);
+      if (posterFile) {
+        formData.append('poster', posterFile);
+      }
+
       const res = await fetch('/api/events', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          category,
-          dateTime,
-          venue,
-          expectedAudience,
-          dignitaries: dignitaries.filter((d) => d.name.trim() !== ''),
-          chiefGuest,
-          guestCount,
-          specialInstructions,
-          mediaDeadline,
-        }),
+        body: formData,
       });
 
       const data = await res.json();
@@ -237,6 +262,7 @@ export default function RegisterEventPage() {
                 <input
                   type="datetime-local"
                   required
+                  min={minDateTimeIST}
                   value={dateTime}
                   onChange={(e) => setDateTime(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
@@ -292,28 +318,58 @@ export default function RegisterEventPage() {
               <p className="text-xs text-slate-500">Specify Chief Guests and fill visiting dignitaries table</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-xs font-black text-slate-800 mb-1.5">Chief Guest Name</label>
-                <input
-                  type="text"
-                  value={chiefGuest}
-                  onChange={(e) => setChiefGuest(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
-                  placeholder="e.g. Dr. K. Sivan"
-                />
+            {/* Structured Chief Guest Fields */}
+            <div className="space-y-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black uppercase text-[#0F2C59] tracking-wider">Chief Guest Details</h3>
+                <span className="text-[10px] text-slate-400 font-medium">Structured Name, Designation & Organisation</span>
               </div>
 
-              <div>
-                <label className="block text-xs font-black text-slate-800 mb-1.5">Total Guest Count</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={guestCount}
-                  onChange={(e) => setGuestCount(parseInt(e.target.value, 10))}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-black text-slate-800 mb-1.5">Chief Guest Name</label>
+                  <input
+                    type="text"
+                    value={chiefGuest.name}
+                    onChange={(e) => setChiefGuest({ ...chiefGuest, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
+                    placeholder="e.g. Dr. K. Sivan"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-800 mb-1.5">Designation</label>
+                  <input
+                    type="text"
+                    value={chiefGuest.designation}
+                    onChange={(e) => setChiefGuest({ ...chiefGuest, designation: e.target.value })}
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
+                    placeholder="e.g. Former Chairman"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-slate-800 mb-1.5">Organization</label>
+                  <input
+                    type="text"
+                    value={chiefGuest.organisation}
+                    onChange={(e) => setChiefGuest({ ...chiefGuest, organisation: e.target.value })}
+                    className="w-full px-4 py-3 bg-white border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
+                    placeholder="e.g. ISRO"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-black text-slate-800 mb-1.5">Total Guest Count</label>
+              <input
+                type="number"
+                min={0}
+                value={guestCount}
+                onChange={(e) => setGuestCount(parseInt(e.target.value, 10))}
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
+              />
             </div>
 
             {/* Dignitaries Table */}
@@ -393,11 +449,11 @@ export default function RegisterEventPage() {
         {activeStep === 5 && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 pb-3">
-              <h2 className="text-1xl font-black text-slate-900 font-serif">Step 5: Media Coverage & Deadlines</h2>
-              <p className="text-xs text-slate-500">Set media asset submission deadline and coverage instructions</p>
+              <h2 className="text-xl font-black text-slate-900 font-serif">Step 5: Media Coverage & Deadlines</h2>
+              <p className="text-xs text-slate-500">Set media asset submission deadline, optional event poster, and coverage instructions</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label className="block text-xs font-black text-slate-800 mb-1.5">
                   Media Asset Submission Deadline <span className="text-red-500">*</span>
@@ -405,10 +461,35 @@ export default function RegisterEventPage() {
                 <input
                   type="datetime-local"
                   required
+                  min={minDateTimeIST}
                   value={mediaDeadline}
                   onChange={(e) => setMediaDeadline(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                 />
+              </div>
+
+              {/* Optional Event Poster Upload Field */}
+              <div>
+                <label className="block text-xs font-black text-slate-800 mb-1.5">
+                  Event Poster <span className="text-slate-400 font-normal">(Optional — image file)</span>
+                </label>
+                <div className="p-4 bg-slate-50 border border-slate-300 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg, image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setPosterFile(file);
+                    }}
+                    className="text-xs text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#0F2C59] file:text-white hover:file:bg-[#162E4D] file:cursor-pointer"
+                  />
+                  {posterFile && (
+                    <span className="text-xs text-emerald-700 font-bold flex items-center gap-1 shrink-0">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      {posterFile.name} ({(posterFile.size / 1024).toFixed(1)} KB)
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div>
@@ -453,6 +534,23 @@ export default function RegisterEventPage() {
                   <span className="text-slate-400 font-bold uppercase text-[10px] block">Venue</span>
                   <span className="font-bold text-slate-800">{venue || 'Not set'}</span>
                 </div>
+                {chiefGuest.name && (
+                  <div>
+                    <span className="text-slate-400 font-bold uppercase text-[10px] block">Chief Guest</span>
+                    <span className="font-bold text-slate-800">
+                      {chiefGuest.name}
+                      {chiefGuest.designation || chiefGuest.organisation
+                        ? ` (${[chiefGuest.designation, chiefGuest.organisation].filter(Boolean).join(', ')})`
+                        : ''}
+                    </span>
+                  </div>
+                )}
+                {posterFile && (
+                  <div>
+                    <span className="text-slate-400 font-bold uppercase text-[10px] block">Attached Poster</span>
+                    <span className="font-bold text-emerald-700">✓ {posterFile.name}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

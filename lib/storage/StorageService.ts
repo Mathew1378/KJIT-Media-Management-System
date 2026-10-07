@@ -7,7 +7,7 @@ export interface UploadOptions {
   mimeType: string;
   eventName: string;
   eventDate: string; // YYYY-MM-DD
-  categoryFolder: 'RawPhotos' | 'GeoTagged' | 'Videos' | 'FinalReel';
+  categoryFolder: 'RawPhotos' | 'GeoTagged' | 'Videos' | 'FinalReel' | 'Poster';
 }
 
 export interface StoredFile {
