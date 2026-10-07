@@ -1,0 +1,49 @@
+# KJIT Media Management System (MMS) - System & Setup Requirements
+
+# ==========================================
+# 1. SYSTEM PREREQUISITES
+# ==========================================
+# Node.js: Version 18.17.0 or higher (Node 20 LTS recommended)
+# Package Manager: npm (comes bundled with Node.js) or yarn / pnpm
+# OS: Windows 10/11, macOS, or Linux
+
+# ==========================================
+# 2. DEPENDENCY OVERVIEW (Node.js / Next.js)
+# ==========================================
+# Framework: Next.js 14.1.0 (App Router)
+# Runtime/UI: React 18.2.0, React-DOM 18.2.0
+# Database ORM: Prisma 5.10.2 (SQLite Engine)
+# Styling: Tailwind CSS 3.4.1, Framer Motion 11.0.8, Lucide React icons
+# Utilities: bcryptjs, jsonwebtoken, nodemailer, googleapis, jspdf, html2canvas, xlsx, mammoth
+
+# ==========================================
+# 3. HOW TO TRANSFER TO ANOTHER SYSTEM
+# ==========================================
+# Option A: Via Zip File / USB Flash Drive (RECOMMENDED for "Same Everything")
+#   1. Copy the entire project folder to USB / target system.
+#   2. IMPORTANT: Ensure you include these folders/files that Git usually ignores:
+#      - prisma/dev.db (SQLite database containing all your users & events data)
+#      - uploads/       (Contains all uploaded media & poster files)
+#   3. Do NOT copy the 'node_modules' or '.next' folders (they will be regenerated).
+
+# Option B: Via Git / GitHub
+#   1. Push code to GitHub repository.
+#   2. Clone on the new machine: git clone <your-repo-url>
+#   3. Copy 'prisma/dev.db' and 'uploads/' manually to the new system so your data remains intact.
+
+# ==========================================
+# 4. FIRST-TIME SETUP COMMANDS ON NEW SYSTEM
+# ==========================================
+# Step 1: Navigate into the project folder
+#   cd MMS
+#
+# Step 2: Install all required npm packages
+#   npm install
+#
+# Step 3: Generate Prisma Client for the new system
+#   npx prisma generate
+#
+# Step 4: Start the local development server
+#   npm run dev
+#
+# Step 5: Open http://localhost:3000 in your browser.
