@@ -214,7 +214,8 @@ export default function AdminUsersPage() {
 
   const copyLoginDetails = () => {
     if (!emailModal) return;
-    const text = `Kristu Jayanti Institute of Technology Media Portal Account Credentials\nName: ${emailModal.userName}\nEmail: ${emailModal.userEmail}\nRole: ${emailModal.userRole}\nTemporary Password: ${emailModal.tempPassword}\nLogin: http://localhost:3000/login`;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const text = `Kristu Jayanti Institute of Technology Media Portal Account Provisioning\nName: ${emailModal.userName}\nEmail: ${emailModal.userEmail}\nRole: ${emailModal.userRole}\nTemporary Password: ${emailModal.tempPassword}\nPortal Login: ${origin}/login\nPassword Reset: ${origin}/reset-password`;
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

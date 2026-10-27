@@ -27,6 +27,7 @@ model User {
   auditLogs     AuditLog[]
   publications  SocialMediaPublication[]
   notifications Notification[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model RolePermission {
@@ -170,5 +171,18 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([tokenHash])
+  @@index([userId])
 }
 

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getSessionUser, hashPassword } from '@/lib/auth';
 import { hasPermission } from '@/lib/rbac';
 import { logAudit } from '@/lib/audit';
+import { createPasswordResetToken } from '@/lib/tokens';
+import { sendProvisioningEmail } from '@/lib/email/email-service';
 
 export async function GET() {
   const user = await getSessionUser();
@@ -18,6 +20,7 @@ export async function GET() {
       role: true,
       department: true,
       isActive: true,
+      mustChangePassword: true,
       createdAt: true,
     },
     orderBy: { createdAt: 'desc' },
@@ -39,6 +42,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return NextResponse.json({ error: 'Please enter a valid email address' }, { status: 400 });
+    }
+
     const existing = await prisma.user.findUnique({
       where: { email: email.toLowerCase().trim() },
     });
@@ -51,12 +59,26 @@ export async function POST(req: Request) {
 
     const newUser = await prisma.user.create({
       data: {
-        name,
+        name: name.trim(),
         email: email.toLowerCase().trim(),
         role,
-        department: department || 'School of Computer Science & Technology',
+        department: department?.trim() || 'School of Computer Science & Technology',
         passwordHash,
+        mustChangePassword: true,
       },
+    });
+
+    // Generate secure, single-use, time-limited password reset token
+    const resetToken = await createPasswordResetToken(newUser.id, 24);
+
+    // Attempt email delivery via SMTP service
+    const emailResult = await sendProvisioningEmail({
+      name: newUser.name,
+      email: newUser.email,
+      role: newUser.role,
+      department: newUser.department,
+      password,
+      resetToken,
     });
 
     await logAudit({
@@ -64,10 +86,17 @@ export async function POST(req: Request) {
       userName: user.name,
       role: user.role,
       action: 'USER_PROVISIONED',
-      details: `Created new account for ${newUser.name} (${newUser.email}) with role ${newUser.role}`,
+      details: `Created new account for ${newUser.name} (${newUser.email}) with role ${newUser.role}. Provisioning email ${
+        emailResult.success ? 'sent successfully' : `failed: ${emailResult.error}`
+      }`,
     });
 
-    return NextResponse.json({ success: true, user: newUser });
+    return NextResponse.json({
+      success: true,
+      user: newUser,
+      emailSent: emailResult.success,
+      emailError: emailResult.error,
+    });
   } catch (err: any) {
     console.error('[Create User Error]', err);
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
