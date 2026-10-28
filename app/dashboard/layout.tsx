@@ -10,7 +10,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const user = await getSessionUser();
 
   if (!user) {
-    redirect('/login/faculty');
+    redirect('/login');
   }
 
   let permissions: string[] = [];
