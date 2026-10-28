@@ -231,7 +231,7 @@ export async function sendProvisioningEmail(
                   ? `
               <div class="field">
                 <div class="field-label">Department</div>
-                <div class="field-value">${department}</div>
+                <div class="field-value">KRISTU JAYANTI INSTITUTE OF TECHNOLOGY (KJIT)</div>
               </div>
               `
                   : ''

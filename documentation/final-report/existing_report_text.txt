@@ -1,0 +1,1451 @@
+ABSTRACT
+
+The KJIT Media Management System (MMS) is an internal, role-based web application designed to coordinate the institutional event-media lifecycle at Kristu Jayanti Institute of Technology. The platform brings event registration, media-team assignment, asset collection, reel editing, departmental approval, social-media publication tracking and academic report generation into a centralized workflow.
+
+Faculty members register events by providing event details, category, schedule, venue, target audience, dignitary information, media coverage deadline and an event poster. The Media Team Head assigns photographers, videographers and editors. Media members upload raw and geotagged assets, while designated editors prepare and submit the final reel. The intended approval chain is Dean, HOD and Programme Coordinator. Rejection requires comments and returns the work for correction.
+
+After final departmental approval, the Social Media Handler prepares or reviews an AI-assisted caption and manually publishes the approved content on Instagram and/or LinkedIn. The corresponding publication URLs are stored for later reference. Authorized faculty and department approvers can generate institutional reports using eight activity formats. The system also provides role-based access, event calendar views, audit logging and a storage abstraction that supports configured file storage and Google Drive integration.
+
+The known technology stack includes Next.js, React, TypeScript, Tailwind CSS, Next.js API routes, Prisma ORM and SQLite for local development. The storage layer is designed to separate file metadata from the physical storage provider. This report documents the system requirements, workflows, diagrams, architecture, design, database concepts, testing approach and local setup procedure. Features and test outcomes that require confirmation from the final repository are explicitly identified rather than assumed.
+
+TABLE OF CONTENTS
+
+Update this field in Microsoft Word (References → Table of Contents → Automatic Table) after opening the document. The headings throughout this report use Word heading styles.
+
+Certificate
+
+Acknowledgment
+
+Abstract
+
+List of Tables
+
+List of Figures
+
+CHAPTER 1 – INTRODUCTION
+
+1.1 Problem Statement
+
+1.2 Project Description and Module Description
+
+CHAPTER 2 – SYSTEM STUDY
+
+2.1 Existing System
+
+2.2 Proposed System
+
+2.3 Use Case Diagram
+
+2.4 Sequential Diagram
+
+2.5 Activity Diagram
+
+CHAPTER 3 – SYSTEM CONFIGURATION
+
+3.1 Hardware Configuration
+
+3.2 Software Configuration
+
+CHAPTER 4 – SOFTWARE DESCRIPTION
+
+4.1 Overview Front End
+
+4.2 Overview Back End
+
+CHAPTER 5 – SYSTEM DESIGN
+
+5.1 Architectural Design
+
+5.2 Input Design
+
+5.3 Output Design
+
+5.4 Database Design
+
+CHAPTER 6 – SOURCE CODE
+
+CHAPTER 7 – SYSTEM TESTING
+
+7.1 Test Case
+
+CHAPTER 8 – SYSTEM IMPLEMENTATION / DEPLOYMENT
+
+CHAPTER 9 – CONCLUSION AND FUTURE ENHANCEMENT
+
+CHAPTER 10 – APPENDICES
+
+10.1 Screenshots
+
+CHAPTER 11 – REFERENCES / BIBLIOGRAPHY
+
+LIST OF TABLES
+
+Table 1.1: Major System Modules
+
+Table 1.2: User Roles and Responsibilities
+
+Table 3.1: Recommended Hardware Configuration
+
+Table 3.2: Software Configuration
+
+Table 4.1: Frontend Application Areas
+
+Table 4.2: Known API Route Groups
+
+Table 5.1: Logical Database Entities
+
+Table 5.2: Main Input Categories
+
+Table 5.3: Main System Outputs
+
+Table 7.1: Functional Test Cases
+
+Table 8.1: Environment Configuration Checklist
+
+LIST OF FIGURES
+
+Figure 2.1: Use-Case Diagram of KJIT Media Management System
+
+Figure 2.2: Sequential Diagram of KJIT Media Management System
+
+Figure 2.3: Activity Diagram of KJIT Media Management System
+
+CHAPTER 1 – INTRODUCTION
+
+1.1 Problem Statement
+
+Institutional events require coordinated work across faculty, media personnel, department authorities and social-media teams. Event details may be communicated through separate messages or documents; media crew assignments may be tracked independently; photographs and video assets may be stored in different locations; approval decisions may be communicated informally; and post-event reports may require repeated manual collection of the same information.
+
+A fragmented process can lead to incomplete event information, unclear task ownership, difficulty locating original media, delays in reel review, missing approval evidence, inconsistent publication records and duplicated report preparation. It can also be difficult to determine the current state of an event or identify which role is responsible for the next action.
+
+The project addresses the need for a centralized workflow in which event information is captured once, media responsibilities are assigned, assets are associated with the event, approvals are recorded in sequence, publication links are retained and report information can be reused. The system aims to improve traceability and reduce avoidable manual coordination.
+
+1.2 Project Description and Module Description
+
+The Media Management System is a private institutional web application. Users authenticate through role-specific login routes. The application presents functions according to permissions and checks authorization at API level. The lifecycle begins with faculty event registration and ends with publication tracking, report generation and audit recording.
+
+Module
+
+Description
+
+Authentication and RBAC
+
+Authenticates provisioned users and limits operations according to assigned roles and permissions.
+
+Event Registration
+
+Captures event identity, category, date/time, venue, audience, guests, media deadline, instructions and poster.
+
+Calendar
+
+Displays events in month, week, day and agenda views; historical events remain viewable.
+
+Crew Assignment
+
+Allows the Media Team Head to assign photographer, videographer and editor roles.
+
+Media Management
+
+Associates raw and geotagged media and final edited reels with events; stores metadata and storage references.
+
+Approval Workflow
+
+Records sequential review decisions, comments and revision cycles.
+
+Social Media Publication
+
+Supports AI-assisted caption drafting and manual Instagram/LinkedIn publishing with URL recording.
+
+Dynamic Reports
+
+Provides eight institutional activity report formats for authorized academic roles.
+
+Administration and Audit
+
+Supports user provisioning, role/permission administration and audit-log review.
+
+1.2.1 Objectives
+
+Centralize institutional event registration and event-related information.
+
+Provide a clear assignment mechanism for media personnel.
+
+Maintain event-associated media metadata and storage references.
+
+Track reel submission, review, rejection, correction and approval history.
+
+Record social-media publication URLs for Instagram and LinkedIn.
+
+Reuse event information when preparing institutional reports.
+
+Apply role-based access controls and maintain an audit trail.
+
+Provide a maintainable architecture that can evolve from local storage to managed object storage.
+
+1.2.2 Scope
+
+The scope covers the internal event-to-report workflow described in this document. It includes user authentication, event records, media assignment, media metadata and file handling, approval records, publication details, report data and audit information. External social-media posting is manual; the system records the resulting URLs rather than claiming automatic publishing. Production hosting, institutional identity-provider integration and cloud migration are deployment decisions and must be verified separately.
+
+1.2.3 User Roles and Responsibilities
+
+Role
+
+Primary responsibilities
+
+Admin
+
+Provision and manage user accounts, manage permitted administrative settings and inspect system audit logs.
+
+Media Team Head
+
+View registered events and assign/reassign/remove photographers, videographers and editors.
+
+Media Team Member
+
+View assigned tasks and upload assigned raw/geotagged media; editors submit final reel assets.
+
+Teacher / Faculty
+
+Register events, provide event details/posters and prepare applicable academic reports.
+
+Dean
+
+Perform the first departmental media review and record approval or rejection with comments.
+
+HOD
+
+Review after Dean approval and record the next decision.
+
+Programme Coordinator
+
+Perform the final departmental approval after HOD approval.
+
+Social Media Handler
+
+Access finally approved reels, prepare captions and record Instagram/LinkedIn publication URLs.
+
+CHAPTER 2 – SYSTEM STUDY
+
+2.1 Existing System
+
+In a conventional event-management process, event information, media assignments, original files, review feedback, publication links and reports may be maintained in separate channels. Faculty may communicate event details through forms or messages; media members may exchange files through shared drives; approvers may provide feedback through email or messaging; and report authors may re-enter event information into a prescribed template.
+
+Such an arrangement can create duplicated records, inconsistent naming, unclear ownership, difficulty tracing revisions and additional effort when compiling reports. The description is a general analysis of common manual-process limitations and should not be interpreted as an audit of every existing institutional practice.
+
+2.2 Proposed System
+
+The proposed MMS provides one role-based application for the event lifecycle. Event records act as the central reference for calendar entries, assignments, media assets, approvals, publication metadata and reports. The Media Head assigns crew members; the media team captures and uploads assets; the editor submits a final reel; authorized approvers process the reel in sequence; and the Social Media Handler records the final external publication links.
+
+The system uses a frontend/backend separation through Next.js application pages and API route handlers. Prisma provides database access. A storage service abstraction separates file handling from database records and supports configured Google Drive integration and local fallback as described in the implementation planning material.
+
+2.3 Use Case Diagram
+
+Figure 2.1 presents the supplied use-case diagram. It identifies the principal actors and the functions available to them. Media members view assigned tasks, upload raw and geotagged media and submit final reel assets. Faculty/coordinators register event details, set media deadlines, upload event posters and generate applicable reports. The System Administrator manages authentication and role management and views audit information. The Media Head assigns event media crew and attaches a Google Drive folder. Approvers review the final reel and either approve or reject it with feedback. The Social Media Publisher manages distribution and records Instagram and LinkedIn URLs.
+
+Figure 2.1: Use-Case Diagram of KJIT Media Management System
+
+2.4 Sequential Diagram
+
+Figure 2.2 illustrates the interaction among human actors and technical components. The client interface sends requests to Next.js API routes. API handlers validate identity and permissions, apply business rules, persist structured records through Prisma and SQLite, and use file/Drive storage for binary assets. Responses are returned to the client so that the appropriate event, assignment, approval or publication state can be displayed.
+
+The six visible phases are event registration, crew assignment, media ingestion and reel editing, review and approval, social-media publication, and event-report generation. During registration, the poster is stored and the event record and audit entry are created. During assignment, crew records are saved and the event status changes. During media ingestion, assets are stored and metadata is persisted. Reel submission creates the review record. Approval or rejection updates approval and event state. Publication records the platform URLs and status. Report generation retrieves event and related data and renders the selected format for export.
+
+Figure 2.2: Sequential Diagram of KJIT Media Management System
+
+2.5 Activity Diagram
+
+Figure 2.3 presents the activity flow from start to end. Faculty registration creates the event in REGISTERED state. The Media Head assigns photographer, videographer and editor roles, after which the event is marked ASSIGNED. Media coverage and Drive-folder preparation are shown as parallel branches that converge before editing. The editor prepares and submits the final reel, changing the event to REEL_SUBMITTED. The approval decision either records rejection comments and sends the reel back for correction, or advances the event to the post-approval stage.
+
+After final approval, the workflow branches into social-media publishing and report preparation. The Social Media Handler manually publishes to Instagram and/or LinkedIn and records the URLs. Faculty selects one of the report formats, reviews automatically populated information, enters any additional participant or budget metrics and generates the report. The branches converge at final audit logging and archival.
+
+Workflow alignment note: the supplied diagrams visibly simplify the approval actors as Dean/HOD in places. The full intended approval sequence documented for this project is Dean → HOD → Programme Coordinator. The original diagrams are retained unchanged; this textual explanation documents the complete intended sequence.
+
+Figure 2.3: Activity Diagram of KJIT Media Management System
+
+CHAPTER 3 – SYSTEM CONFIGURATION
+
+3.1 Hardware Configuration
+
+The following is a recommended local development configuration, not a verified production-hosting specification.
+
+Component
+
+Minimum practical configuration
+
+Recommended configuration
+
+Processor
+
+Modern dual-core 64-bit CPU
+
+Recent Intel Core i5 / AMD Ryzen 5 or equivalent
+
+Memory
+
+8 GB RAM
+
+16 GB RAM or higher
+
+Storage
+
+At least 10 GB free for source, dependencies and database
+
+SSD with 20 GB or more free; additional space for uploaded media
+
+Operating system
+
+Windows 10/11 64-bit, macOS or supported Linux
+
+Updated Windows 11/macOS/Linux
+
+Network
+
+Internet for dependency installation and integrations
+
+Stable broadband connection
+
+Media files can require substantial disk capacity. The actual requirement depends on event volume, image/video resolution, retention policy and whether the project uses local storage or Google Drive.
+
+3.2 Software Configuration
+
+Software
+
+Purpose / notes
+
+Node.js
+
+JavaScript runtime required by Next.js. Install a version compatible with the package manifest.
+
+npm
+
+Dependency and script manager, normally installed with Node.js.
+
+Visual Studio Code
+
+Recommended development editor.
+
+Next.js / React
+
+Application framework and component-based user interface.
+
+TypeScript
+
+Static typing for application code.
+
+Tailwind CSS
+
+Utility-first styling framework.
+
+Prisma ORM
+
+Database schema and typed database access.
+
+SQLite
+
+Local development database provider in the known schema.
+
+Git
+
+Source control and collaboration.
+
+Web browser
+
+Testing the application, preferably a current Chromium-based browser.
+
+Exact package versions must be taken from package.json and package-lock.json in the final repository. The known project has used Next.js 14+ in its implementation plan; this should not be treated as a substitute for checking the actual installed version.
+
+CHAPTER 4 – SOFTWARE DESCRIPTION
+
+4.1 Overview Front End
+
+The frontend is implemented as a Next.js App Router application using React and TypeScript. Application routes are organized under the app directory. Shared components provide reusable interface elements, while dashboard pages present role-relevant operations. The interface is an internal ERP-style application rather than a public marketing website.
+
+Frontend area
+
+Purpose
+
+Landing page
+
+Provides the system identity and entry point to role-specific sign-in.
+
+Role-specific login
+
+Provides dedicated login paths for each recognized role.
+
+Dashboard
+
+Displays role-scoped overview information and available actions.
+
+Event registration
+
+Captures event details, guest information, audience, deadline and poster.
+
+Calendar
+
+Shows event schedules in month, week, day and agenda modes.
+
+Assignments
+
+Allows the Media Head to assign and maintain event crew.
+
+Uploads
+
+Provides the media upload workflow and event association.
+
+Approvals
+
+Allows Dean, HOD and Programme Coordinator to review reels and record decisions.
+
+Social Media workspace
+
+Supports approved-reel review, AI caption drafting and publication URL entry.
+
+Reports
+
+Provides the eight-format report generation workflow to authorized roles.
+
+Admin pages
+
+Provide user administration and audit-log viewing.
+
+The project has used components such as EventCard, ApprovalTimeline, GoogleDriveCard, SocialMediaWorkspace, StatusBadge and shared navigation components. The exact current component inventory should be confirmed against the final source tree.
+
+4.1.1 Role-Specific Access
+
+Role-specific navigation is driven by permission codes and the RBAC layer. The documented menu configuration assigns user management and audit viewing to Admin; event creation and academic reports to Faculty; crew assignment to Media Head; media upload to Media Head and Media Member; and approvals to Dean, HOD and Programme Coordinator. The Social Media Handler is limited to approved-content publication functions. Menu visibility is not a security boundary: API routes must independently enforce the same permissions.
+
+4.2 Overview Back End
+
+The backend is implemented through Next.js route handlers under app/api. Each protected route should identify the current session, validate the requested operation against role permissions, validate request data, execute business logic and return a controlled response. Prisma is used to read and write database records. File operations are delegated to the storage layer.
+
+Known route
+
+Purpose indicated by route
+
+/api/auth/login
+
+Authenticate a user and establish a session.
+
+/api/auth/logout
+
+Terminate the current session.
+
+/api/auth/me
+
+Return information about the authenticated user.
+
+/api/admin/users
+
+Administrative user management.
+
+/api/admin/audit-logs
+
+Retrieve audit records for authorized administrators.
+
+/api/directory
+
+Retrieve permitted directory records.
+
+/api/events
+
+Create/list event records.
+
+/api/events/[id]
+
+Retrieve or update an individual event.
+
+/api/events/[id]/assign
+
+Manage event crew assignments.
+
+/api/events/[id]/drive-link
+
+Associate a Drive folder with an event.
+
+/api/media/upload
+
+Upload media assets and persist metadata.
+
+/api/media/file/[id]
+
+Retrieve an authorized media file.
+
+/api/approvals
+
+Process approval actions and retrieve approval data.
+
+/api/reports
+
+Retrieve and generate event report data.
+
+/api/social-media/generate-caption
+
+Generate an AI-assisted caption draft, subject to configured AI service.
+
+/api/social-media/publications
+
+Manage publication records and platform URLs.
+
+The route list is based on the known project structure and conversation records. Methods, payload schemas, status codes and exact permission codes must be checked in the repository before publishing API reference documentation.
+
+4.2.1 Authentication and Authorization
+
+The project planning material describes cookie-based JWT sessions and password hashing. The authentication library is responsible for session creation and validation, while the RBAC library checks permissions. User accounts are provisioned rather than created through open public registration. Deactivated accounts should not be allowed to authenticate.
+
+4.2.2 Audit Logging
+
+Important operations should create audit records containing the acting user, role, action, details and timestamp, with IP address where available. Audit records support traceability for user administration, event registration, assignments, approval decisions and publication actions. Sensitive credentials, password hashes and private tokens must never be written to audit details.
+
+4.2.3 Storage Abstraction
+
+The StorageService abstraction isolates the application from a specific storage provider. The implementation plan describes Google Drive API v3 through a service account and a local filesystem fallback when Drive credentials are not configured. The database stores file identifiers, names, types, paths or provider references and uploader/event associations; it should not store large media binaries directly in SQLite. Actual provider selection and environment-variable handling must be confirmed from the current StorageService implementation.
+
+CHAPTER 5 – SYSTEM DESIGN
+
+5.1 Architectural Design
+
+The application follows a layered web architecture. The browser renders the Next.js client interface. User actions call Next.js API routes. API handlers perform authentication, authorization, validation and workflow logic. Prisma mediates database operations against SQLite in the local configuration. The storage service writes or retrieves files through the configured provider. External services, such as Google Drive or an AI caption service, are accessed only when configured.
+
+Layer
+
+Responsibilities
+
+Presentation layer
+
+Pages, forms, dashboards, calendar, report views and reusable components.
+
+Application/API layer
+
+Route handlers, input validation, authentication checks and orchestration of workflows.
+
+Security layer
+
+Session validation, role permissions, access restrictions and safe handling of secrets.
+
+Data access layer
+
+Prisma Client and database models/relations.
+
+Database layer
+
+Structured records for users, events, assignments, media metadata, approvals, reports and audit logs.
+
+Storage/integration layer
+
+Local or Google Drive file operations and configured AI/email integrations.
+
+5.1.1 Event Lifecycle and Statuses
+
+Status / state
+
+Meaning
+
+REGISTERED
+
+Faculty event details have been saved.
+
+ASSIGNED
+
+Media crew has been assigned.
+
+REEL_SUBMITTED
+
+The editor has submitted the final reel for review.
+
+DEAN_APPROVED
+
+Dean approval has been recorded; the next approval stage is eligible.
+
+AWAITING_SOCIAL_MEDIA
+
+The complete departmental approval sequence is finished and the approved reel is ready for publication handling.
+
+REJECTED / revision required
+
+A reviewer has rejected or requested changes with comments; the editor must revise and resubmit.
+
+PUBLISHED
+
+Publication information has been recorded for the external social platform(s).
+
+The exact enum/string values and transition rules must be verified in the current schema and API handlers. A state should advance only when its required preceding action has been completed.
+
+5.2 Input Design
+
+Input group
+
+Fields / validation considerations
+
+Authentication
+
+Email and password; validate credentials and account active status.
+
+Event details
+
+Name, category, date/time, venue and department.
+
+Audience
+
+Programme/semester/section selections and expected count.
+
+Guests
+
+Chief Guest and multiple dignitaries with name, designation and organization.
+
+Media planning
+
+Special instructions and media upload deadline.
+
+Poster
+
+Image/file upload associated with the event.
+
+Crew assignment
+
+Event, user and role in event (photographer, videographer or editor).
+
+Media upload
+
+Event, file, media category, optional caption and geotag metadata.
+
+Approval
+
+Decision and mandatory explanatory comments for rejection/change request.
+
+Publication
+
+Caption draft and separate Instagram and LinkedIn URLs.
+
+Report
+
+Format selection and format-specific details such as participants, budget, photos and captions.
+
+Date/time picker fields must prevent selecting past dates and past times using Asia/Kolkata as the business timezone. Server-side validation is required because client-side restrictions can be bypassed. This rule applies to data-entry controls; it must not prevent viewing historical events in the calendar.
+
+5.3 Output Design
+
+Role-specific dashboards and navigation.
+
+Event cards and calendar entries, including poster information where available.
+
+Crew assignment lists and task views.
+
+Media asset listings associated with each event.
+
+Approval timeline, decision status and reviewer comments.
+
+Social media publication status and stored Instagram/LinkedIn URLs.
+
+Institutional report preview and exported files.
+
+Administrative audit logs and relevant statistics.
+
+5.4 Database Design
+
+The known Prisma schema includes the following principal entities. The database is relational at the application level, with identifiers linking related records. SQLite is the known local development provider.
+
+Entity
+
+Purpose and relationship
+
+User
+
+Stores account identity, password hash, role, department and active state. Related to created events, assignments, uploaded media, reviews, reports and audit logs.
+
+RolePermission
+
+Associates a role with a permission code; supports permission-based access checks.
+
+Event
+
+Stores event details, schedule, venue, audience, guest data, media deadline, status and creator. Parent to assignments, media assets, approval steps and reports.
+
+Assignment
+
+Connects a user to an event with a role-in-event such as photographer, videographer or editor.
+
+MediaAsset
+
+Stores media file metadata, event association, uploader, file reference, caption and geotag information.
+
+ApprovalStep
+
+Stores stage, status, reviewer, comments and review timestamp for the event approval process.
+
+Report
+
+Stores event report format, report data and generating user.
+
+AuditLog
+
+Records user actions and relevant details with timestamps.
+
+A SocialMediaPublication record is part of the documented social publishing workflow. Its exact presence and field definitions must be verified in the current prisma/schema.prisma before treating it as a confirmed database model. The logical record should associate an event and approved reel with caption text, Instagram and LinkedIn publication URLs, publication status, posting user and timestamps.
+
+5.4.1 Data Integrity and Design Considerations
+
+Use primary keys to uniquely identify records and foreign keys to maintain relationships.
+
+Use cascading deletion only where it is safe and consistent with retention requirements; audit history should generally be retained.
+
+Keep event core details as the primary source of truth for report generation.
+
+Store large binary media in file/object storage and keep references/metadata in the relational database.
+
+Validate role and workflow transitions in the backend.
+
+Retain approval comments and revision history to support accountability.
+
+Protect password hashes, session secrets and service-account credentials.
+
+A formal ER diagram should be generated from the final Prisma schema. The supplied use-case, sequence and activity diagrams are not substitutes for an ER diagram.
+
+CHAPTER 6 – SOURCE CODE
+
+The project uses the Next.js App Router convention. The following directory map is based on the known source structure and should be reconciled with the latest repository before final submission.
+
+Directory / file
+
+Responsibility
+
+app/
+
+Application routes, layouts and page components.
+
+app/api/
+
+Backend API route handlers.
+
+app/dashboard/
+
+Authenticated dashboard pages for events, calendar, assignments, approvals, reports and administration.
+
+app/login/
+
+Role-specific login pages.
+
+components/
+
+Reusable interface components such as cards, status badges, navigation and social-media workspace.
+
+lib/auth.ts
+
+Authentication/session utilities.
+
+lib/rbac.ts
+
+Role and permission checking.
+
+lib/prisma.ts
+
+Prisma Client initialization.
+
+lib/audit.ts
+
+Audit-log helper functions.
+
+lib/dateUtils.ts
+
+Shared date/time utilities, including timezone-aware validation where implemented.
+
+lib/storage/StorageService.ts
+
+Storage abstraction and provider integration.
+
+lib/reports/reportTemplates.ts
+
+Report format/template configuration.
+
+lib/email/email-service.ts
+
+Email-related service integration.
+
+prisma/schema.prisma
+
+Prisma data model and database provider configuration.
+
+public/
+
+Static assets such as logos and public resources.
+
+uploads/
+
+Local upload location when local storage fallback is active; should be excluded from source control.
+
+6.1 Important API Route Groups
+
+The known API route groups include authentication, admin user/audit management, directory, events, event assignment and Drive-link management, media upload/file retrieval, approvals, reports and social-media caption/publication operations. The exact source code is not reproduced in this report because the complete repository was not attached for direct inspection. This avoids presenting illustrative code as if it were the deployed implementation.
+
+6.2 Version Control
+
+The project is maintained in Git and has been pushed to a GitHub repository. The known remote is https://github.com/Mathew1378/KJIT-Media-Management-System.git. The repository should contain application source and configuration templates but must exclude node_modules, build output, uploaded media, local databases where appropriate, environment files and credentials. Generated build metadata should also be reviewed for exclusion.
+
+Before a formal release, confirm that .env files, service-account JSON, API keys, passwords, private media and production database files are not committed.
+
+CHAPTER 7 – SYSTEM TESTING
+
+7.1 Test Case
+
+The following test matrix is a proposed verification suite derived from the required workflows. Actual Result and Status are intentionally left as Not Executed / To Be Verified because no test execution logs were supplied for this report.
+
+ID
+
+Module
+
+Scenario
+
+Input / precondition
+
+Expected result
+
+Status
+
+TC-01
+
+Authentication
+
+Valid active user login
+
+Valid provisioned credentials
+
+Dashboard for assigned role
+
+executed
+
+TC-02
+
+Authentication
+
+Invalid password
+
+Incorrect password
+
+Access denied; no session
+
+Not executed
+
+TC-03
+
+RBAC
+
+Unauthorized API access
+
+User without permission calls protected route
+
+403/denied response
+
+Not executed
+
+TC-04
+
+User admin
+
+Provision a user
+
+Valid user details and role
+
+Account saved and audit entry created
+
+Not executed
+
+TC-05
+
+Event
+
+Register event
+
+Valid event form
+
+Event saved as REGISTERED
+
+Not executed
+
+TC-06
+
+Poster
+
+Upload event poster
+
+Supported image file
+
+Poster stored and linked to event
+
+Not executed
+
+TC-07
+
+Audience
+
+Select target audience
+
+Programme/semester/section choices
+
+Selections saved accurately
+
+Not executed
+
+TC-08
+
+Guests
+
+Enter chief guest and dignitaries
+
+Structured name/designation/organization
+
+Structured guest data persists
+
+Not executed
+
+TC-09
+
+Date validation
+
+Select past date/time
+
+Past value
+
+Client and server reject value
+
+Not executed
+
+TC-10
+
+Calendar
+
+View past event
+
+Existing historical record
+
+Historical event remains visible
+
+Not executed
+
+TC-11
+
+Assignment
+
+Assign crew
+
+Valid event, user and role
+
+Assignment saved; event assigned
+
+Not executed
+
+TC-12
+
+Media
+
+Upload raw/geotagged media
+
+Valid authorized upload
+
+File stored; metadata associated
+
+Not executed
+
+TC-13
+
+Storage
+
+Google Drive unavailable
+
+No valid Drive configuration
+
+Local fallback or clear safe error per configuration
+
+Not executed
+
+TC-14
+
+Reel
+
+Submit final reel
+
+Editor with assigned event
+
+Reel submitted for review
+
+Not executed
+
+TC-15
+
+Approval
+
+Dean approves
+
+Pending Dean stage
+
+Decision saved; next stage enabled
+
+Not executed
+
+TC-16
+
+Approval
+
+HOD attempts early approval
+
+Dean stage still pending
+
+Action blocked
+
+Not executed
+
+TC-17
+
+Approval
+
+Coordinator approves
+
+HOD stage approved
+
+Final approval recorded
+
+Not executed
+
+TC-18
+
+Rejection
+
+Reject with comments
+
+Reviewer enters correction details
+
+Rejection recorded and editor notified
+
+Not executed
+
+TC-19
+
+Social
+
+Generate caption
+
+Approved event data available
+
+Grounded draft generated or clear service error
+
+Not executed
+
+TC-20
+
+Social
+
+Save Instagram URL
+
+Valid URL
+
+Instagram publication field saved
+
+Not executed
+
+TC-21
+
+Social
+
+Save LinkedIn URL
+
+Valid URL
+
+LinkedIn publication field saved
+
+Not executed
+
+TC-22
+
+Reports
+
+Generate each of eight formats
+
+Valid event and format data
+
+Correct format-specific report rendered
+
+Not executed
+
+TC-23
+
+Reports
+
+Export PDF/Word
+
+Completed report data
+
+File downloads and content is readable
+
+Not executed
+
+TC-24
+
+Audit
+
+Perform key workflow action
+
+Authenticated actor
+
+Corresponding audit entry is created
+
+Not executed
+
+TC-25
+
+Failure handling
+
+Database unavailable
+
+Database connection interrupted
+
+Controlled error; no false success
+
+Not executed
+
+7.1.1 Testing Approach
+
+Testing should include unit-level validation of date and permission utilities, API integration tests for protected routes, database tests for relations and state transitions, and end-to-end tests covering the complete event lifecycle. Negative tests are essential: unauthorized users must not access restricted APIs, an approver must not skip a prior stage, invalid files must be rejected, and incomplete publication records must not be represented as published.
+
+7.1.2 Acceptance Criteria
+
+A user can access only the functions permitted by the assigned role.
+
+An event can be registered with required fields and an associated poster.
+
+The Media Head can assign event crew and the assigned users can access their tasks.
+
+Media assets remain associated with the correct event and uploader.
+
+Approval stages execute in the required order and rejection comments are retained.
+
+The Social Media Handler can record separate Instagram and LinkedIn URLs for approved content.
+
+Authorized academic users can create the applicable report formats.
+
+Key operations are auditable and errors do not produce misleading success states.
+
+CHAPTER 8 – SYSTEM IMPLEMENTATION / DEPLOYMENT
+
+This chapter describes a safe local-development setup for a fresh computer. The exact commands must be checked against the current package.json and Prisma schema before execution. The known local database provider is SQLite, and the project has used Prisma Client generation. Do not reset or delete an existing database when installing an update.
+
+8.1 Prerequisites
+
+A supported 64-bit operating system (Windows 10/11, macOS or Linux).
+
+Node.js and npm versions compatible with the repository's package.json.
+
+Git for cloning the repository, if using GitHub.
+
+Visual Studio Code or another code editor.
+
+Internet access for dependency installation.
+
+Google Drive service-account credentials only if Google Drive mode is required.
+
+Email/AI provider credentials only if those integrations are enabled.
+
+8.2 Obtain the Source Code
+
+The known GitHub repository is:
+
+https://github.com/Mathew1378/KJIT-Media-Management-System.git
+
+A developer can clone the repository using:
+
+git clone https://github.com/Mathew1378/KJIT-Media-Management-System.gitcd KJIT-Media-Management-System
+
+Alternatively, download the repository as a ZIP archive, extract it and open the project root folder in Visual Studio Code.
+
+8.3 Install Dependencies
+
+Open a terminal at the project root and run:
+
+npm install
+
+If installation fails, verify the Node.js version, network connectivity, npm registry access and lockfile consistency. Prefer npm ci for a clean reproducible install when package-lock.json is present and the lockfile is synchronized with package.json.
+
+8.4 Environment Configuration
+
+Create a local .env file only after reviewing the repository's actual environment-variable usage. Do not copy secrets into source control. The implementation plan identifies the following Google Drive settings as relevant when Drive mode is enabled:
+
+GOOGLE_SERVICE_ACCOUNT_KEYGOOGLE_DRIVE_FOLDER_ID
+
+These names are based on the implementation plan and must be checked in the current code. The project may also require an authentication/session secret and a database URL. Use the exact names expected by the current source code; do not invent values. Store service-account credentials securely and grant only the required Drive permissions.
+
+8.5 Prepare Prisma and Database
+
+The known schema uses Prisma with SQLite. After environment configuration, generate Prisma Client:
+
+npx prisma generate
+
+Inspect prisma/schema.prisma to confirm the datasource URL and migration strategy. The project history indicates that the local database was previously managed without a checked-in Prisma Migrate history, so do not run prisma migrate reset or delete dev.db. If the repository's current workflow uses db push, use it only after taking a backup and confirming the target database path:
+
+npx prisma db push
+
+If the project includes migrations or a seed script, follow the README/package scripts and current repository instructions instead. Never run a destructive reset against an existing institutional database.
+
+8.6 Start the Application
+
+Start the local development server using the script defined in package.json. The known command is:
+
+npm run dev
+
+Open the local address printed by Next.js in the terminal, commonly http://localhost:3000. If port 3000 is occupied, stop the other process or use the alternate port reported by Next.js.
+
+8.7 First-Run Verification
+
+Confirm the development server starts without compilation errors.
+
+Open the landing page and verify that role-specific login routes load.
+
+Authenticate with an authorized provisioned account. Do not assume demo accounts exist in a clean database.
+
+Verify that role-specific pages and API permissions behave correctly.
+
+Register a non-production test event and confirm it appears in the calendar.
+
+Test poster and media storage using non-sensitive sample files.
+
+Verify crew assignment and approval sequence using test accounts.
+
+Test social-media URL recording with test URLs only.
+
+Generate a report and inspect its preview/export.
+
+Inspect audit logs and confirm sensitive information is not exposed.
+
+8.8 Demo Accounts and Clean Installation
+
+A previous development walkthrough documented sample accounts for local testing, but the project also has a clean-slate requirement to remove demo/sample records before institutional use. Therefore, do not rely on sample credentials or assume they exist. Provision new accounts through the authorized administration process, and change any development passwords before use.
+
+8.9 Common Troubleshooting
+
+Problem
+
+Checks and corrective direction
+
+Node/npm command not found
+
+Install Node.js from its official distribution, reopen the terminal and verify node -v and npm -v.
+
+Dependency installation error
+
+Check network/proxy, Node compatibility, lockfile and npm output; retry with npm ci when appropriate.
+
+Missing environment variable
+
+Compare .env with actual process.env references in the source; add required local values without committing secrets.
+
+Prisma Client error
+
+Run npx prisma generate after confirming schema and installed Prisma package versions.
+
+Database cannot open
+
+Check datasource URL, relative path resolution, folder permissions and whether the database file exists.
+
+Port already in use
+
+Stop the process occupying the port or start Next.js on another port.
+
+Login failure
+
+Verify account existence, active status, password hash, role value, session secret and cookie settings.
+
+Upload failure
+
+Check file-size limits, allowed file types, write permissions, storage credentials and provider error logs.
+
+Google Drive failure
+
+Verify service-account key format, Drive API access, folder ID and folder-sharing permissions.
+
+Email not delivered
+
+Check SMTP/provider credentials, sender verification, network restrictions and provider logs.
+
+AI caption failure
+
+Check configured AI service credentials, model access, network and server logs; allow manual caption entry if supported.
+
+Report export failure
+
+Check browser console/server logs, report data completeness and export dependencies.
+
+8.10 Production Deployment Considerations
+
+A local development server is not a production deployment. Before institutional production use, select a supported hosting environment, use a production-grade database where appropriate, configure HTTPS, secure cookies and secrets, apply least-privilege storage credentials, define media retention and backup policies, monitor application errors, and test restore procedures. If SQLite is retained, assess concurrent-write and hosting-volume constraints. A migration to PostgreSQL or managed database must be planned and tested rather than assumed to be automatic.
+
+For media-heavy operation, object storage is generally more appropriate for large photos and videos than storing binary files in a relational database. The database should retain metadata and storage references. Google Drive may remain a staff-facing archive while a cloud object store is evaluated for application-managed media. Cloud migration is a future deployment decision, not a claim that it is already complete.
+
+CHAPTER 9 – CONCLUSION AND FUTURE ENHANCEMENT
+
+9.1 Conclusion
+
+The KJIT Media Management System brings the principal stages of institutional event-media coordination into a single role-based application. It connects event registration, crew assignment, media collection, reel editing, sequential departmental review, social-media publication tracking and academic report generation. By maintaining structured event records and associating related assignments, assets, approvals and reports, the system provides a foundation for better coordination and traceability.
+
+The architecture combines a Next.js application, API route handlers, Prisma data access and a local SQLite configuration, with a storage abstraction for media. Its effectiveness depends on correct role enforcement, reliable file storage, disciplined approval transitions, data protection and adequate testing. The final repository and actual execution evidence should be used to validate implementation claims before academic submission.
+
+9.2 Future Enhancement
+
+Migration to managed cloud object storage with lifecycle rules, access controls and backup policies.
+
+Migration to a production database such as PostgreSQL where concurrency and deployment requirements justify it.
+
+Institutional single sign-on and centralized identity management.
+
+More advanced notifications and escalation for overdue assignments or pending approvals.
+
+Operational dashboards and analytics for event throughput, media turnaround and approval duration.
+
+Mobile-friendly field capture and dedicated mobile application.
+
+Improved media search, tagging and duplicate detection.
+
+Expanded report templates and integration with institutional reporting systems.
+
+Automated backup verification and disaster-recovery exercises.
+
+These items are potential future enhancements and should not be represented as completed functionality unless verified in a later release.
+
+CHAPTER 10 – APPENDICES
+
+10.1 Screenshots
+
+Insert authentic screenshots captured from the final running application. The following placeholders identify recommended evidence. Do not use mockups or generated images as proof of implemented functionality.
+
+Screenshot 10.1: Landing page and role selection
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.2: Role-specific login page
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.3: Faculty dashboard
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.4: Event registration form
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.5: Event poster upload and event detail
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.6: Calendar with event entry
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.7: Media Head dashboard
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.8: Crew assignment screen
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.9: Media Member assigned-task view
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.10: Media upload interface
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.11: Dean review and approval screen
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.12: HOD review screen
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.13: Programme Coordinator approval screen
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.14: Social Media Handler dashboard
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.15: AI caption drafting workspace
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.16: Instagram and LinkedIn URL recording
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.17: Dynamic Report Generator format selection
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.18: Report preview
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.19: PDF export result
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.20: Word export result
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.21: Admin user management
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+Screenshot 10.22: System audit logs
+
+[Insert authentic application screenshot here. Add a brief explanation of the screen and the role permitted to access it.]
+
+10.2 Additional Documentation
+
+Recommended supplementary evidence includes a verified ER diagram generated from the final Prisma schema, a current package.json dependency listing, a sanitized environment-variable template, actual test execution results, and a deployment configuration diagram if production deployment has been completed.
+
+CHAPTER 11 – REFERENCES / BIBLIOGRAPHY
+
+Vercel. (n.d.). Next.js Documentation. https://nextjs.org/docs
+
+Meta Open Source. (n.d.). React Documentation. https://react.dev/
+
+Microsoft. (n.d.). TypeScript Documentation. https://www.typescriptlang.org/docs/
+
+Prisma. (n.d.). Prisma ORM Documentation. https://www.prisma.io/docs
+
+SQLite. (n.d.). SQLite Documentation. https://www.sqlite.org/docs.html
+
+OpenJS Foundation. (n.d.). Node.js Documentation. https://nodejs.org/docs/
+
+Tailwind Labs. (n.d.). Tailwind CSS Documentation. https://tailwindcss.com/docs
+
+Git. (n.d.). Git Documentation. https://git-scm.com/doc
+
+Google. (n.d.). Google Drive API Documentation. https://developers.google.com/drive/api/guides/about-sdk
+
+DOCUMENT COMPLETION AND VERIFICATION NOTES
+
+This report is a structured academic draft built from the project requirements, the supplied institutional structure, the three supplied diagrams, and the available project implementation notes and walkthrough. It is not a substitute for repository-level verification.
+
+Replace all bracketed student, register number, guide and academic-year placeholders.
+
+Update the Table of Contents and page numbers in Microsoft Word.
+
+Confirm exact dependency versions and scripts from package.json/package-lock.json.
+
+Confirm current Prisma schema, SocialMediaPublication model and actual database relations.
+
+Confirm exact environment-variable names from source code; never include actual secret values.
+
+Insert authentic screenshots from the running application.
+
+Execute the test cases and replace Not Executed with actual outcomes and evidence.
+
+Review the diagrams' simplified approver labels against the implemented Dean → HOD → Programme Coordinator sequence.
+
+Confirm whether report exports include Word and Excel in the current build; describe only verified formats.
+
+Obtain project guide/department approval for the final academic wording and certificate.
+
+End of Report
