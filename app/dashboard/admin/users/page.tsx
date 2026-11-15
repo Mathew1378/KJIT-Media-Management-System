@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('FACULTY');
-  const [department, setDepartment] = useState('School of Computer Science & Technology');
+  const [department] = useState('Kristu Jayanti Institute of Technology');
   const [password, setPassword] = useState('password123');
   const [submitting, setSubmitting] = useState(false);
 
@@ -435,8 +435,8 @@ export default function AdminUsersPage() {
             <input
               type="text"
               required
+              readOnly
               value={department}
-              onChange={(e) => setDepartment(e.target.value)}
               className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-600 focus:outline-none"
             />
           </div>

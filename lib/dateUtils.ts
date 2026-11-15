@@ -1,6 +1,6 @@
 /**
  * Shared Date/Time and Chief Guest utilities for KJIT Media Management System.
- * Timezone: Asia/Kolkata (IST).
+ * Timezone: Asia/Kolkata (IST, UTC+05:30).
  */
 
 export interface ChiefGuestInfo {
@@ -38,34 +38,62 @@ export function getMinDateTimeISTString(referenceDate: Date = new Date()): strin
 }
 
 /**
+ * Accurately parses a datetime input into a Date object representing the given time in Asia/Kolkata (IST, UTC+05:30).
+ * Handles HTML5 datetime-local formats ("YYYY-MM-DDTHH:mm", "YYYY-MM-DDTHH:mm:ss"), strings with spaces ("YYYY-MM-DD HH:mm"),
+ * DD-MM-YYYY formats, and ISO strings with timezone offsets.
+ */
+export function parseDateTimeIST(dateTimeInput: string | Date | null | undefined): Date | null {
+  if (!dateTimeInput) return null;
+
+  if (dateTimeInput instanceof Date) {
+    return isNaN(dateTimeInput.getTime()) ? null : new Date(dateTimeInput.getTime());
+  }
+
+  if (typeof dateTimeInput !== 'string') return null;
+
+  const trimmed = dateTimeInput.trim();
+  if (!trimmed) return null;
+
+  // 1. Check for standard YYYY-MM-DD[T or space]HH:mm(:ss)?
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?(.*)$/);
+  if (ymdMatch) {
+    const [, year, month, day, hour, minute, second = '00', ms, offsetPart] = ymdMatch;
+    const trimmedOffset = offsetPart ? offsetPart.trim() : '';
+    if (trimmedOffset === 'Z' || /^[+-]\d{2}:?\d{2}$/.test(trimmedOffset)) {
+      const parsed = new Date(trimmed);
+      return isNaN(parsed.getTime()) ? null : parsed;
+    }
+    const msPart = ms ? `.${ms.slice(0, 3)}` : '';
+    const istIso = `${year}-${month}-${day}T${hour}:${minute}:${second}${msPart}+05:30`;
+    const parsed = new Date(istIso);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  // 2. Check for DD-MM-YYYY or DD/MM/YYYY with time
+  const dmyMatch = trimmed.match(/^(\d{2})[-/](\d{2})[-/](\d{4})[T\s](\d{2}):(\d{2})(?::(\d{2}))?(.*)$/);
+  if (dmyMatch) {
+    const [, day, month, year, hour, minute, second = '00'] = dmyMatch;
+    const istIso = `${year}-${month}-${day}T${hour}:${minute}:${second}+05:30`;
+    const parsed = new Date(istIso);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  // 3. Fallback: direct Date constructor
+  const fallback = new Date(trimmed);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
+/**
  * Validates whether a submitted date/time is in the past relative to current Asia/Kolkata (IST) time.
  * Allows a 60-second grace buffer to account for minor client/server clock skew or form filling delay.
  */
 export function isPastIST(dateTimeInput: string | Date | null | undefined): boolean {
   if (!dateTimeInput) return false;
 
-  let inputTime: number;
+  const parsed = parseDateTimeIST(dateTimeInput);
+  if (!parsed || isNaN(parsed.getTime())) return false;
 
-  if (typeof dateTimeInput === 'string') {
-    const trimmed = dateTimeInput.trim();
-    if (!trimmed) return false;
-
-    // Handle datetime-local input string without offset e.g. "2026-10-06T14:30"
-    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/.test(trimmed)) {
-      // Append IST offset +05:30 to parse accurately as IST
-      inputTime = new Date(`${trimmed}:00+05:30`).getTime();
-    } else {
-      inputTime = new Date(trimmed).getTime();
-    }
-  } else if (dateTimeInput instanceof Date) {
-    inputTime = dateTimeInput.getTime();
-  } else {
-    return false;
-  }
-
-  if (isNaN(inputTime)) return false;
-
-  // Allow 60 seconds buffer (60000 ms)
+  const inputTime = parsed.getTime();
   const nowTime = Date.now();
   return inputTime < (nowTime - 60000);
 }

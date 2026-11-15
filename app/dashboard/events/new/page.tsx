@@ -81,22 +81,79 @@ export default function RegisterEventPage() {
     setDignitaries(updated);
   };
 
+  const validateStep = (stepNumber: number): boolean => {
+    if (stepNumber === 1) {
+      if (!name.trim()) {
+        setError('Event Official Title / Name is required.');
+        return false;
+      }
+    } else if (stepNumber === 2) {
+      if (!dateTime) {
+        setError('Event Date & Scheduled Start Time is required.');
+        return false;
+      }
+      if (isPastIST(dateTime)) {
+        setError('Event Date & Scheduled Start Time cannot be in the past (IST). Please select a current or future date and time.');
+        return false;
+      }
+      if (!venue.trim()) {
+        setError('Campus Venue / Auditorium is required.');
+        return false;
+      }
+    } else if (stepNumber === 3) {
+      if (!expectedAudience.trim()) {
+        setError('Expected Audience Group & Capacity is required.');
+        return false;
+      }
+    } else if (stepNumber === 5) {
+      if (!mediaDeadline) {
+        setError('Media Asset Submission Deadline is required.');
+        return false;
+      }
+      if (isPastIST(mediaDeadline)) {
+        setError('Media Asset Submission Deadline cannot be in the past (IST). Please select a current or future deadline.');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    setError('');
+    if (!validateStep(activeStep)) return;
+    setActiveStep((prev) => Math.min(6, prev + 1));
+  };
+
+  const handlePrevStep = () => {
+    setError('');
+    setActiveStep((prev) => Math.max(1, prev - 1));
+  };
+
+  const goToStep = (targetStep: number) => {
+    if (targetStep < activeStep) {
+      setError('');
+      setActiveStep(targetStep);
+      return;
+    }
+    for (let s = activeStep; s < targetStep; s++) {
+      if (!validateStep(s)) return;
+    }
+    setError('');
+    setActiveStep(targetStep);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
 
-    // Client-side validation: disallow past date/time for scheduled event and media deadline (Asia/Kolkata IST)
-    if (isPastIST(dateTime)) {
-      setError('Event Date & Scheduled Start Time cannot be in the past (IST). Please select a current or future date and time.');
-      setSubmitting(false);
-      return;
-    }
-
-    if (isPastIST(mediaDeadline)) {
-      setError('Media Asset Submission Deadline cannot be in the past (IST). Please select a current or future deadline.');
-      setSubmitting(false);
-      return;
+    // Ensure all steps are valid consistently across the wizard
+    for (let s = 1; s <= 5; s++) {
+      if (!validateStep(s)) {
+        setActiveStep(s);
+        setSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -163,7 +220,7 @@ export default function RegisterEventPage() {
             return (
               <div
                 key={step.number}
-                onClick={() => setActiveStep(step.number)}
+                onClick={() => goToStep(step.number)}
                 className={`flex items-center gap-3 cursor-pointer p-2 rounded-xl transition-all ${
                   isCurrent ? 'bg-blue-50/80 border border-blue-200' : ''
                 }`}
@@ -217,7 +274,10 @@ export default function RegisterEventPage() {
                   type="text"
                   required
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (error) setError('');
+                  }}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                   placeholder="e.g. National Symposium on Quantum Computing & Cyber Resilience"
                 />
@@ -264,7 +324,10 @@ export default function RegisterEventPage() {
                   required
                   min={minDateTimeIST}
                   value={dateTime}
-                  onChange={(e) => setDateTime(e.target.value)}
+                  onChange={(e) => {
+                    setDateTime(e.target.value);
+                    if (error) setError('');
+                  }}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                 />
               </div>
@@ -277,7 +340,10 @@ export default function RegisterEventPage() {
                   type="text"
                   required
                   value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
+                  onChange={(e) => {
+                    setVenue(e.target.value);
+                    if (error) setError('');
+                  }}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                   placeholder="e.g. Main Auditorium, SKE Block, Kristu Jayanti Institute of Technology Campus"
                 />
@@ -302,7 +368,10 @@ export default function RegisterEventPage() {
                 type="text"
                 required
                 value={expectedAudience}
-                onChange={(e) => setExpectedAudience(e.target.value)}
+                onChange={(e) => {
+                  setExpectedAudience(e.target.value);
+                  if (error) setError('');
+                }}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                 placeholder="e.g. 300 Final Year Computer Science Students & Research Scholars"
               />
@@ -463,7 +532,10 @@ export default function RegisterEventPage() {
                   required
                   min={minDateTimeIST}
                   value={mediaDeadline}
-                  onChange={(e) => setMediaDeadline(e.target.value)}
+                  onChange={(e) => {
+                    setMediaDeadline(e.target.value);
+                    if (error) setError('');
+                  }}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                 />
               </div>
@@ -561,7 +633,7 @@ export default function RegisterEventPage() {
           <button
             type="button"
             disabled={activeStep === 1}
-            onClick={() => setActiveStep((prev) => Math.max(1, prev - 1))}
+            onClick={handlePrevStep}
             className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl disabled:opacity-50 transition-colors"
           >
             &larr; Previous Step
@@ -570,7 +642,7 @@ export default function RegisterEventPage() {
           {activeStep < 6 ? (
             <button
               type="button"
-              onClick={() => setActiveStep((prev) => Math.min(6, prev + 1))}
+              onClick={handleNextStep}
               className="px-6 py-3 bg-[#0F2C59] hover:bg-[#162E4D] text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2"
             >
               <span>Next Step</span>

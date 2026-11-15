@@ -4,7 +4,7 @@ import { getSessionUser } from '@/lib/auth';
 import { hasPermission } from '@/lib/rbac';
 import { logAudit } from '@/lib/audit';
 import { storageService } from '@/lib/storage/StorageService';
-import { isPastIST } from '@/lib/dateUtils';
+import { isPastIST, parseDateTimeIST } from '@/lib/dateUtils';
 
 export async function GET() {
   const user = await getSessionUser();
@@ -112,6 +112,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Media deadline cannot be in the past' }, { status: 400 });
     }
 
+    const parsedEventDate = parseDateTimeIST(dateTime) || new Date(dateTime);
+    const parsedMediaDeadline = parseDateTimeIST(mediaDeadline) || new Date(mediaDeadline);
+
     // Handle optional Event Poster file upload using existing StorageService architecture
     let posterFileId: string | null = null;
     let posterFileName: string | null = null;
@@ -121,7 +124,7 @@ export async function POST(req: Request) {
 
     if (posterFile && posterFile.size > 0) {
       const arrayBuffer = await posterFile.arrayBuffer();
-      const eventDateStr = new Date(dateTime).toISOString().split('T')[0];
+      const eventDateStr = parsedEventDate.toISOString().split('T')[0];
 
       const storedFile = await storageService.uploadFile({
         fileName: posterFile.name,
@@ -143,14 +146,14 @@ export async function POST(req: Request) {
       data: {
         name,
         category,
-        dateTime: new Date(dateTime),
+        dateTime: parsedEventDate,
         venue,
         expectedAudience: expectedAudience || 'Standard Audience',
         dignitariesJson: JSON.stringify(dignitaries),
         chiefGuest: chiefGuestStr,
         guestCount,
         specialInstructions,
-        mediaDeadline: new Date(mediaDeadline),
+        mediaDeadline: parsedMediaDeadline,
         status: 'REGISTERED',
         createdById: user.id,
         posterFileId,

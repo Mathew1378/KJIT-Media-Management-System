@@ -62,7 +62,7 @@ export async function POST(req: Request) {
         name: name.trim(),
         email: email.toLowerCase().trim(),
         role,
-        department: department?.trim() || 'School of Computer Science & Technology',
+        department: 'Kristu Jayanti Institute of Technology',
         passwordHash,
         mustChangePassword: true,
       },
