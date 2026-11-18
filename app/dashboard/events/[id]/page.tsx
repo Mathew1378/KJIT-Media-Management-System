@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   CalendarDays,
@@ -22,6 +22,7 @@ import {
   AlertCircle,
   Sparkles,
   Building2,
+  Trash2,
 } from 'lucide-react';
 import GoogleDriveCard from '@/components/GoogleDriveCard';
 import StatusBadge from '@/components/StatusBadge';
@@ -71,12 +72,38 @@ interface EventDetail {
 }
 
 export default function EventDetailPage() {
+  const router = useRouter();
   const params = useParams();
   const eventId = params.id as string;
 
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError('');
+
+    try {
+      const res = await fetch(`/api/events/${eventId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete event');
+      }
+
+      router.push('/dashboard');
+    } catch (err: any) {
+      setDeleteError(err.message || 'An unexpected error occurred while deleting the event.');
+      setDeleting(false);
+    }
+  };
 
   const fetchEvent = () => {
     fetch(`/api/events/${eventId}`)
@@ -173,6 +200,16 @@ export default function EventDetailPage() {
               >
                 Generate Report
               </Link>
+            )}
+
+            {user?.role === 'ADMIN' && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-1.5 font-sans"
+              >
+                <Trash2 className="w-4 h-4" /> Delete Event
+              </button>
             )}
           </div>
         </div>
@@ -388,6 +425,94 @@ export default function EventDetailPage() {
           />
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL (ADMIN ONLY) */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-rose-200 space-y-6">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-rose-100 rounded-2xl text-rose-600 shrink-0">
+                <AlertCircle className="w-7 h-7" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-lg font-black text-slate-900 font-serif">
+                  Delete Event
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Are you sure you want to permanently delete this event? This action cannot be undone.
+                </p>
+              </div>
+            </div>
+
+            {/* Event Summary Card in Modal */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-400 uppercase text-[10px]">Event Name</span>
+                <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">
+                  {event.category}
+                </span>
+              </div>
+              <p className="font-black text-slate-900 text-sm">
+                {event.name}
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 text-[11px] text-slate-600">
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Date:</span>
+                  {new Date(event.dateTime).toLocaleDateString('en-IN')}
+                </div>
+                <div>
+                  <span className="text-slate-400 block text-[10px]">Venue:</span>
+                  {event.venue}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-[11px] text-rose-700 leading-relaxed">
+              <strong>Warning:</strong> Deleting this event will permanently remove its assigned media personnel, uploaded media assets, approval history, and generated reports. This action will be recorded in the System Audit Logs.
+            </div>
+
+            {deleteError && (
+              <div className="p-3 bg-red-100 border border-red-300 rounded-xl text-red-800 text-xs font-semibold">
+                {deleteError}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!deleting) {
+                    setShowDeleteModal(false);
+                    setDeleteError('');
+                  }
+                }}
+                disabled={deleting}
+                className="px-5 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-xl transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {deleting ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" /> Confirm Delete
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
