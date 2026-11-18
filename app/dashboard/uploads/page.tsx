@@ -57,6 +57,8 @@ export default function UploadMediaPage() {
 
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [user, setUser] = useState<{ role: string; name: string } | null>(null);
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [msg, setMsg] = useState('');
   const [error, setError] = useState('');
 
@@ -75,6 +77,14 @@ export default function UploadMediaPage() {
   };
 
   useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) setUser(data.user);
+        if (data.permissions) setPermissions(data.permissions);
+      })
+      .catch(() => {});
+
     fetchEvents();
   }, []);
 
@@ -185,6 +195,8 @@ export default function UploadMediaPage() {
   };
 
   if (!loading && events.length === 0) {
+    const canRegisterEvents = user?.role === 'FACULTY';
+
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
@@ -200,18 +212,26 @@ export default function UploadMediaPage() {
           </h1>
         </div>
 
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-4 shadow-xl">
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 sm:p-12 text-center space-y-4 shadow-xl">
           <UploadCloud className="w-12 h-12 text-slate-300 mx-auto" />
-          <h2 className="text-base font-black text-slate-800">Your department hasn't registered any events yet</h2>
+          <h2 className="text-base font-black text-slate-800">
+            {canRegisterEvents
+              ? "Your department hasn't registered any events yet"
+              : "No Registered Events Available"}
+          </h2>
           <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
-            Media uploads and Google Drive repository attachments require a registered department event.
+            {canRegisterEvents
+              ? "Media uploads and Google Drive repository attachments require a registered department event."
+              : "No registered events are currently available for media uploads. Please contact your Faculty member or department coordinator to ensure that the event is registered."}
           </p>
-          <Link
-            href="/dashboard/events/new"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#0F2C59] to-[#162E4D] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg hover:from-[#162E4D] hover:to-slate-900 transition-all font-sans"
-          >
-            <PlusCircle className="w-4 h-4" /> Register First Event
-          </Link>
+          {canRegisterEvents && (
+            <Link
+              href="/dashboard/events/new"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#0F2C59] to-[#162E4D] text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg hover:from-[#162E4D] hover:to-slate-900 transition-all font-sans"
+            >
+              <PlusCircle className="w-4 h-4" /> Register First Event
+            </Link>
+          )}
         </div>
       </div>
     );

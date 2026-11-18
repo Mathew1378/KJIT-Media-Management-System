@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   PlusCircle,
@@ -31,7 +31,25 @@ interface Dignitary {
 export default function RegisterEventPage() {
   const router = useRouter();
 
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [activeStep, setActiveStep] = useState(1);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.authenticated && data.user?.role === 'FACULTY') {
+          setAuthorized(true);
+        } else {
+          setAuthorized(false);
+          router.replace('/dashboard');
+        }
+      })
+      .catch(() => {
+        setAuthorized(false);
+        router.replace('/dashboard');
+      });
+  }, [router]);
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Academic');
@@ -190,6 +208,14 @@ export default function RegisterEventPage() {
       setSubmitting(false);
     }
   };
+
+  if (authorized === null) {
+    return <div className="p-12 text-center text-xs text-slate-400">Verifying authorization...</div>;
+  }
+
+  if (!authorized) {
+    return null;
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">

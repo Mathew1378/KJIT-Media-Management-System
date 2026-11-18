@@ -45,7 +45,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const user = await getSessionUser();
-  if (!user || !(await hasPermission(user.role, 'events:create'))) {
+  if (!user || user.role !== 'FACULTY' || !(await hasPermission(user.role, 'events:create'))) {
     return NextResponse.json({ error: 'Unauthorized to register event' }, { status: 403 });
   }
 
