@@ -1,12 +1,31 @@
 import nodemailer from 'nodemailer';
 
 export function getAppBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/+$/, '');
+  // Check configured environment variables first (preserves explicit configuration)
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || process.env.APP_URL?.trim();
+
+  if (configuredUrl) {
+    const cleanUrl = configuredUrl.replace(/\/+$/, '');
+    // In production, guard against accidental localhost configuration so emails never point to localhost
+    if (process.env.NODE_ENV === 'production') {
+      const isLocalhost =
+        cleanUrl.includes('localhost') ||
+        cleanUrl.includes('127.0.0.1') ||
+        cleanUrl.includes('0.0.0.0');
+
+      if (!isLocalhost && cleanUrl.length > 0) {
+        return cleanUrl;
+      }
+    } else if (cleanUrl.length > 0) {
+      return cleanUrl;
+    }
   }
-  if (process.env.APP_URL) {
-    return process.env.APP_URL.replace(/\/+$/, '');
+
+  // Centralized fallback based on environment
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://kjit-media.hucs.page';
   }
+
   return 'http://localhost:3000';
 }
 
