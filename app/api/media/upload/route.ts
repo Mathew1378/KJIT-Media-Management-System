@@ -4,6 +4,9 @@ import { getSessionUser } from '@/lib/auth';
 import { storageService } from '@/lib/storage/StorageService';
 import { logAudit } from '@/lib/audit';
 
+export const dynamic = 'force-dynamic';
+export const maxDuration = 120; // 2 minutes execution window for media transfers
+
 export async function POST(req: Request) {
   const user = await getSessionUser();
   if (!user) {
@@ -27,6 +30,22 @@ export async function POST(req: Request) {
 
     if (!file || !eventId) {
       return NextResponse.json({ error: 'File and eventId are required' }, { status: 400 });
+    }
+
+    if (file.size === 0) {
+      return NextResponse.json({ error: 'Uploaded file cannot be empty' }, { status: 400 });
+    }
+
+    // Size limit verification: 200MB for final reel videos, 30MB for photos
+    const MAX_REEL_SIZE = 200 * 1024 * 1024;
+    const MAX_PHOTO_SIZE = 30 * 1024 * 1024;
+    const sizeLimit = fileType === 'FINAL_REEL' ? MAX_REEL_SIZE : MAX_PHOTO_SIZE;
+    if (file.size > sizeLimit) {
+      const limitMb = Math.round(sizeLimit / (1024 * 1024));
+      return NextResponse.json(
+        { error: `File size (${(file.size / (1024 * 1024)).toFixed(1)}MB) exceeds maximum allowed limit of ${limitMb}MB.` },
+        { status: 400 }
+      );
     }
 
     const event = await prisma.event.findUnique({ where: { id: eventId } });
@@ -107,6 +126,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, mediaAsset });
   } catch (err: any) {
     console.error('[Media Upload Error]', err);
-    return NextResponse.json({ error: 'Failed to upload media asset' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to process and store media asset. Please check network connection and try again.' },
+      { status: 500 }
+    );
   }
 }

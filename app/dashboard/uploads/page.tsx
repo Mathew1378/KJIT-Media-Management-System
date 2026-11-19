@@ -109,10 +109,16 @@ export default function UploadMediaPage() {
     setMsg('');
     setError('');
 
-    try {
-      let successCount = 0;
+    let successCount = 0;
+    let currentAttemptIndex = 0;
+    let failedIndex = -1;
+    let lastErrorMessage = '';
 
-      for (const file of files) {
+    try {
+      for (let i = 0; i < files.length; i++) {
+        currentAttemptIndex = i;
+        const file = files[i];
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('eventId', selectedEventId);
@@ -146,11 +152,38 @@ export default function UploadMediaPage() {
           body: formData,
         });
 
-        if (res.ok) {
+        const data = await res.json().catch(() => null);
+
+        if (res.ok && data?.success) {
           successCount++;
+        } else {
+          lastErrorMessage = data?.error || `Upload failed for ${file.name} (HTTP ${res.status})`;
+          failedIndex = i;
+          break;
         }
       }
 
+      // Refresh gallery whenever at least one upload succeeds
+      if (successCount > 0) {
+        fetchEvents();
+      }
+
+      // Handle partial or total failure
+      if (failedIndex !== -1) {
+        // Remove successfully uploaded files; retain failed and unattempted files
+        const remainingFiles = files.slice(failedIndex);
+        setFiles(remainingFiles);
+
+        if (successCount > 0) {
+          setError(`Partially uploaded: ${successCount} file(s) succeeded. ${lastErrorMessage}. Remaining ${remainingFiles.length} file(s) retained for retry.`);
+        } else {
+          setError(lastErrorMessage || 'Upload failed. Please check file format, size, and connection.');
+        }
+        setUploading(false);
+        return;
+      }
+
+      // All files in batch succeeded
       if (fileType === 'FINAL_REEL') {
         setMsg('Final Reel version uploaded successfully! Department approval chain initiated.');
       } else {
@@ -160,9 +193,13 @@ export default function UploadMediaPage() {
       setFiles([]);
       setCaption('');
       setUploading(false);
-      fetchEvents();
     } catch (err: any) {
-      setError('Upload request error');
+      if (successCount > 0) {
+        fetchEvents();
+      }
+      const remainingFiles = files.slice(currentAttemptIndex);
+      setFiles(remainingFiles);
+      setError(err?.message || 'Upload request error');
       setUploading(false);
     }
   };

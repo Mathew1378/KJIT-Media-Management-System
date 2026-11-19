@@ -114,6 +114,7 @@ export class LocalStorageProvider implements IStorageProvider {
 export class GoogleDriveStorageProvider implements IStorageProvider {
   private driveService: any;
   private rootFolderId: string;
+  private auth: any;
 
   constructor() {
     const keyFile = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
@@ -130,6 +131,7 @@ export class GoogleDriveStorageProvider implements IStorageProvider {
       scopes: ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive'],
     });
 
+    this.auth = auth;
     this.driveService = google.drive({ version: 'v3', auth });
   }
 
@@ -173,31 +175,102 @@ export class GoogleDriveStorageProvider implements IStorageProvider {
     const eventFolderId = await this.getOrCreateFolder(eventFolderName, kjitFolderId);
     const categoryFolderId = await this.getOrCreateFolder(options.categoryFolder, eventFolderId);
 
-    const { Readable } = require('stream');
-    const media = {
-      mimeType: options.mimeType,
-      body: Readable.from(options.fileBuffer),
-    };
+    const fileSize = options.fileBuffer.length;
+    let fileId: string;
+    let uploadedName: string;
+    let mimeType: string;
+    let size: number;
 
-    const fileMetadata = {
-      name: options.fileName,
-      parents: [categoryFolderId],
-    };
+    // Google Drive v3 limits standard multipart uploads to 5MB.
+    // For files > 5MB (e.g. video reels), use Google Drive Resumable Upload protocol.
+    if (fileSize <= 5 * 1024 * 1024) {
+      const { Readable } = require('stream');
+      const media = {
+        mimeType: options.mimeType,
+        body: Readable.from(options.fileBuffer),
+      };
 
-    const file = await this.driveService.files.create({
-      resource: fileMetadata,
-      media: media,
-      fields: 'id, name, mimeType, size',
-    });
+      const fileMetadata = {
+        name: options.fileName,
+        parents: [categoryFolderId],
+      };
+
+      const file = await this.driveService.files.create({
+        resource: fileMetadata,
+        media: media,
+        fields: 'id, name, mimeType, size',
+      });
+
+      fileId = file.data.id;
+      uploadedName = file.data.name;
+      mimeType = file.data.mimeType || options.mimeType;
+      size = parseInt(file.data.size || '0', 10);
+    } else {
+      // Initiate Resumable Upload Session
+      const authClient = await this.auth.getClient();
+      const initRes = await authClient.request({
+        method: 'POST',
+        url: 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8',
+          'X-Upload-Content-Type': options.mimeType || 'application/octet-stream',
+          'X-Upload-Content-Length': fileSize.toString(),
+        },
+        data: {
+          name: options.fileName,
+          parents: [categoryFolderId],
+        },
+      });
+
+      const uploadUrl = initRes.headers.location || initRes.headers['location'];
+      if (!uploadUrl) {
+        throw new Error('Google Drive resumable upload session failed: missing Location header');
+      }
+
+      // Upload binary payload to resumable session URL
+      const uploadRes = await authClient.request({
+        method: 'PUT',
+        url: uploadUrl,
+        headers: {
+          'Content-Type': options.mimeType || 'application/octet-stream',
+          'Content-Length': fileSize.toString(),
+        },
+        data: options.fileBuffer,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+        timeout: 120000,
+      });
+
+      if (!uploadRes.data || !uploadRes.data.id) {
+        throw new Error('Google Drive resumable upload failed: invalid or missing file ID returned from Google Drive');
+      }
+
+      fileId = uploadRes.data.id;
+      uploadedName = uploadRes.data.name || options.fileName;
+      mimeType = uploadRes.data.mimeType || options.mimeType;
+
+      if (uploadRes.data.size !== undefined && uploadRes.data.size !== null) {
+        const remoteSize = parseInt(uploadRes.data.size, 10);
+        if (isNaN(remoteSize) || remoteSize !== fileSize) {
+          throw new Error(
+            `Google Drive resumable upload integrity check failed: uploaded ${fileSize} bytes but Google Drive reported ${uploadRes.data.size} bytes`
+          );
+        }
+        size = remoteSize;
+      } else {
+        // Size omitted in Google Drive response; record local buffer size without claiming remote size verification
+        size = fileSize;
+      }
+    }
 
     const drivePath = `KJIT/${eventFolderName}/${options.categoryFolder}/${options.fileName}`;
 
     return {
-      fileId: file.data.id,
-      fileName: file.data.name,
+      fileId,
+      fileName: uploadedName,
       drivePath,
-      mimeType: file.data.mimeType || options.mimeType,
-      size: parseInt(file.data.size || '0', 10),
+      mimeType,
+      size,
     };
   }
 
