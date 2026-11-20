@@ -18,9 +18,10 @@ import {
   Sparkles,
   Building2,
   Upload,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
-import { getMinDateTimeISTString, isPastIST } from '@/lib/dateUtils';
+import { getMinDateTimeISTString, isPastIST, getISTDateOnlyString, isDeadlineEarlierThanEventDate } from '@/lib/dateUtils';
 
 interface Dignitary {
   name: string;
@@ -74,6 +75,25 @@ export default function RegisterEventPage() {
   const [error, setError] = useState('');
 
   const minDateTimeIST = getMinDateTimeISTString();
+
+  // Dynamically compute the minimum selectable deadline date/time based on selected Event Date
+  const eventDateOnly = getISTDateOnlyString(dateTime);
+  const minDeadlineIST = eventDateOnly
+    ? `${eventDateOnly}T00:00` > minDateTimeIST
+      ? `${eventDateOnly}T00:00`
+      : minDateTimeIST
+    : minDateTimeIST;
+
+  const handleDateTimeChange = (val: string) => {
+    setDateTime(val);
+    if (error) setError('');
+    if (val && mediaDeadline) {
+      if (isDeadlineEarlierThanEventDate(val, mediaDeadline)) {
+        setMediaDeadline('');
+        setError('Media Submission Deadline was cleared because it cannot be earlier than the selected Event Date. Please select a valid deadline on or after the Event Date.');
+      }
+    }
+  };
 
   const steps = [
     { number: 1, title: 'Event Information', subtitle: 'Title & Category' },
@@ -130,6 +150,10 @@ export default function RegisterEventPage() {
       }
       if (isPastIST(mediaDeadline)) {
         setError('Media Asset Submission Deadline cannot be in the past (IST). Please select a current or future deadline.');
+        return false;
+      }
+      if (dateTime && isDeadlineEarlierThanEventDate(dateTime, mediaDeadline)) {
+        setError('Media Asset Submission Deadline cannot be earlier than the selected Event Date.');
         return false;
       }
     }
@@ -350,10 +374,7 @@ export default function RegisterEventPage() {
                   required
                   min={minDateTimeIST}
                   value={dateTime}
-                  onChange={(e) => {
-                    setDateTime(e.target.value);
-                    if (error) setError('');
-                  }}
+                  onChange={(e) => handleDateTimeChange(e.target.value)}
                   className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
                 />
               </div>
@@ -556,14 +577,34 @@ export default function RegisterEventPage() {
                 <input
                   type="datetime-local"
                   required
-                  min={minDateTimeIST}
+                  min={minDeadlineIST}
                   value={mediaDeadline}
                   onChange={(e) => {
                     setMediaDeadline(e.target.value);
                     if (error) setError('');
                   }}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
+                  className={`w-full px-4 py-3 bg-slate-50 border ${
+                    dateTime && mediaDeadline && isDeadlineEarlierThanEventDate(dateTime, mediaDeadline)
+                      ? 'border-red-400 focus:ring-red-400'
+                      : 'border-slate-300 focus:ring-[#0F2C59]'
+                  } rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:outline-none`}
                 />
+                {dateTime ? (
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Minimum selectable deadline: <span className="font-semibold text-slate-700">{eventDateOnly}</span> (on or after the selected Event Date).
+                  </p>
+                ) : (
+                  <p className="mt-1 text-[11px] text-amber-600 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Please select an Event Date in Step 2 to set the minimum submission deadline.
+                  </p>
+                )}
+                {dateTime && mediaDeadline && isDeadlineEarlierThanEventDate(dateTime, mediaDeadline) && (
+                  <p className="mt-1 text-[11px] text-red-600 flex items-center gap-1 font-bold">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    Deadline cannot be earlier than Event Date ({eventDateOnly}).
+                  </p>
+                )}
               </div>
 
               {/* Optional Event Poster Upload Field */}

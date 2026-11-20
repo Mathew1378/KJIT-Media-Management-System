@@ -4,7 +4,7 @@ import { getSessionUser } from '@/lib/auth';
 import { hasPermission } from '@/lib/rbac';
 import { logAudit } from '@/lib/audit';
 import { storageService } from '@/lib/storage/StorageService';
-import { isPastIST, parseDateTimeIST } from '@/lib/dateUtils';
+import { isPastIST, parseDateTimeIST, isDeadlineEarlierThanEventDate } from '@/lib/dateUtils';
 
 export async function GET() {
   const user = await getSessionUser();
@@ -110,6 +110,14 @@ export async function POST(req: Request) {
 
     if (isPastIST(mediaDeadline)) {
       return NextResponse.json({ error: 'Media deadline cannot be in the past' }, { status: 400 });
+    }
+
+    // SERVER-SIDE VALIDATION: Media submission deadline cannot be earlier than the event date
+    if (isDeadlineEarlierThanEventDate(dateTime, mediaDeadline)) {
+      return NextResponse.json(
+        { error: 'Media Submission Deadline cannot be earlier than the selected Event Date' },
+        { status: 400 }
+      );
     }
 
     const parsedEventDate = parseDateTimeIST(dateTime) || new Date(dateTime);

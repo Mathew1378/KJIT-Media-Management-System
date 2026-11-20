@@ -99,6 +99,40 @@ export function isPastIST(dateTimeInput: string | Date | null | undefined): bool
 }
 
 /**
+ * Returns the calendar date string in "YYYY-MM-DD" format for Asia/Kolkata (IST, UTC+05:30).
+ */
+export function getISTDateOnlyString(dateTimeInput: string | Date | null | undefined): string | null {
+  if (!dateTimeInput) return null;
+
+  const parsed = parseDateTimeIST(dateTimeInput);
+  if (!parsed || isNaN(parsed.getTime())) return null;
+
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Kolkata',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(parsed);
+}
+
+/**
+ * Validates whether the media submission deadline date is earlier than the event date in Asia/Kolkata (IST).
+ * Allows the deadline to be on the same calendar day as the event or any subsequent day.
+ * Returns true if the deadline date is strictly earlier than the event date (i.e. invalid).
+ */
+export function isDeadlineEarlierThanEventDate(
+  eventDateInput: string | Date | null | undefined,
+  deadlineInput: string | Date | null | undefined
+): boolean {
+  const eventDateStr = getISTDateOnlyString(eventDateInput);
+  const deadlineDateStr = getISTDateOnlyString(deadlineInput);
+
+  if (!eventDateStr || !deadlineDateStr) return false;
+  return deadlineDateStr < eventDateStr;
+}
+
+/**
  * Safely parses Chief Guest info whether stored as structured JSON object or legacy plain string.
  */
 export function parseChiefGuest(raw?: string | null): ChiefGuestInfo {
