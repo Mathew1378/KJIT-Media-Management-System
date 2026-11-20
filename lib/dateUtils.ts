@@ -133,6 +133,42 @@ export function isDeadlineEarlierThanEventDate(
 }
 
 /**
+ * Validates whether the media submission deadline is earlier than the event date & time in Asia/Kolkata (IST).
+ * Compares full date and time down to minute/millisecond precision.
+ * Returns true if the deadline is strictly earlier than the event date & time (i.e. invalid).
+ * Returns false if the deadline is equal to or later than the event date & time (i.e. valid).
+ */
+export function isDeadlineEarlierThanEventDateTime(
+  eventDateInput: string | Date | null | undefined,
+  deadlineInput: string | Date | null | undefined
+): boolean {
+  const eventDate = parseDateTimeIST(eventDateInput);
+  const deadlineDate = parseDateTimeIST(deadlineInput);
+
+  if (!eventDate || !deadlineDate) return false;
+  return deadlineDate.getTime() < eventDate.getTime();
+}
+
+/**
+ * Formats a date/time into a human-friendly IST string for display, e.g. "30 Nov 2026, 3:06 pm".
+ */
+export function formatDateTimeDisplayIST(dateTimeInput: string | Date | null | undefined): string | null {
+  if (!dateTimeInput) return null;
+  const parsed = parseDateTimeIST(dateTimeInput);
+  if (!parsed || isNaN(parsed.getTime())) return null;
+
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(parsed);
+}
+
+/**
  * Safely parses Chief Guest info whether stored as structured JSON object or legacy plain string.
  */
 export function parseChiefGuest(raw?: string | null): ChiefGuestInfo {

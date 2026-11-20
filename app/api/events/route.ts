@@ -4,7 +4,7 @@ import { getSessionUser } from '@/lib/auth';
 import { hasPermission } from '@/lib/rbac';
 import { logAudit } from '@/lib/audit';
 import { storageService } from '@/lib/storage/StorageService';
-import { isPastIST, parseDateTimeIST, isDeadlineEarlierThanEventDate } from '@/lib/dateUtils';
+import { isPastIST, parseDateTimeIST, isDeadlineEarlierThanEventDate, isDeadlineEarlierThanEventDateTime } from '@/lib/dateUtils';
 
 export async function GET() {
   const user = await getSessionUser();
@@ -103,6 +103,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required event fields' }, { status: 400 });
     }
 
+    // Gracefully handle missing or invalid datetime values without causing unhandled Prisma crashes
+    const parsedEventDate = parseDateTimeIST(dateTime);
+    if (!parsedEventDate || isNaN(parsedEventDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid Event Date & Time format' }, { status: 400 });
+    }
+
+    const parsedMediaDeadline = parseDateTimeIST(mediaDeadline);
+    if (!parsedMediaDeadline || isNaN(parsedMediaDeadline.getTime())) {
+      return NextResponse.json({ error: 'Invalid Media Submission Deadline format' }, { status: 400 });
+    }
+
     // SERVER-SIDE VALIDATION: Disallow past date/time for scheduled event and media deadline (Asia/Kolkata IST)
     if (isPastIST(dateTime)) {
       return NextResponse.json({ error: 'Event date and time cannot be in the past' }, { status: 400 });
@@ -112,16 +123,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Media deadline cannot be in the past' }, { status: 400 });
     }
 
-    // SERVER-SIDE VALIDATION: Media submission deadline cannot be earlier than the event date
-    if (isDeadlineEarlierThanEventDate(dateTime, mediaDeadline)) {
+    // SERVER-SIDE VALIDATION: Media submission deadline cannot be earlier than the event date & time
+    if (isDeadlineEarlierThanEventDateTime(dateTime, mediaDeadline)) {
       return NextResponse.json(
-        { error: 'Media Submission Deadline cannot be earlier than the selected Event Date' },
+        { error: 'Media Submission Deadline cannot be earlier than the Event Date & Time' },
         { status: 400 }
       );
     }
-
-    const parsedEventDate = parseDateTimeIST(dateTime) || new Date(dateTime);
-    const parsedMediaDeadline = parseDateTimeIST(mediaDeadline) || new Date(mediaDeadline);
 
     // Handle optional Event Poster file upload using existing StorageService architecture
     let posterFileId: string | null = null;
