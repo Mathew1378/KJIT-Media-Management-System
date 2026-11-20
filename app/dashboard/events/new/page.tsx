@@ -487,7 +487,7 @@ export default function RegisterEventPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-800 mb-1.5">Total Guest Count</label>
+              <label className="block text-xs font-black text-slate-800 mb-1.5">Total External Visitors (Expected)</label>
               <input
                 type="number"
                 min={0}
@@ -495,6 +495,9 @@ export default function RegisterEventPage() {
                 onChange={(e) => setGuestCount(parseInt(e.target.value, 10))}
                 className="w-full px-4 py-3 bg-slate-50 border border-slate-300 rounded-2xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-[#0F2C59] focus:outline-none"
               />
+              <p className="mt-1 text-[11px] text-slate-500">
+                Enter the estimated total number of external guests expected to attend this event. This is independent of the Chief Guest and Dignitaries details above.
+              </p>
             </div>
 
             {/* Dignitaries Table */}
