@@ -185,7 +185,7 @@ export default function LandingPage() {
               KRISTU JAYANTI UNIVERSITY (DEEMED TO BE UNIVERSITY)
             </div>
             <div className="text-slate-400 text-[11px]">
-              Kristu Jayanti Institute of Technology • School of Computer Science & Technology
+              Kristu Jayanti Institute of Technology
             </div>
             <div className="text-amber-300/80 text-[10px] font-semibold">
               K. Narayanapura, Kothanur P.O., Bengaluru - 560077, Karnataka, India
@@ -194,7 +194,7 @@ export default function LandingPage() {
 
           <div className="text-slate-400 text-[11px] space-y-1 md:text-right">
             <div>&copy; {new Date().getFullYear()} Kristu Jayanti University. All rights reserved.</div>
-            <div className="text-[10px] text-slate-500">Internal Media Management System • Confidential</div>
+            <div className="text-[10px] text-slate-500">Developed By: Mathews T. Kovoor - 25MCAA31 and Nidhin Kumar N - 25MCAA36 (2025 - 2027)</div>
           </div>
         </div>
       </footer>
